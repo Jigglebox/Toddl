@@ -64,18 +64,39 @@
 
   // yFactor (0..1) places a bubble mid-screen; omitted = below the bottom
   // edge. The first few bubbles seed on-screen so play can start instantly.
+  // Soft pastel tints wash over the soap film so every bubble is its
+  // own color. rgba strings keep the glassy highlights underneath.
+  var BUBBLE_TINTS = [
+    'rgba(230, 140, 170, 0.45)',   // rose
+    'rgba(120, 170, 235, 0.45)',   // sky blue
+    'rgba(140, 210, 160, 0.42)',   // mint
+    'rgba(240, 200, 110, 0.45)',   // gold
+    'rgba(190, 150, 240, 0.45)',   // violet
+    'rgba(130, 210, 220, 0.42)',   // aqua
+    'rgba(255, 255, 255, 0.0)'     // classic clear
+  ];
+
   function spawnBubble(yFactor) {
     if (!stage || bubbles.length >= MAX_BUBBLES) return;
 
     var rect = stage.getBoundingClientRect();
-    var size = Math.round(Math.min(rect.width, rect.height) * (0.24 + Math.random() * 0.10));
-    size = Math.max(size, 96);   // never smaller than a comfortable toddler target
+    // A real mix of sizes: little ones, big slow ones.
+    var size = Math.round(Math.min(rect.width, rect.height) * (0.18 + Math.random() * 0.20));
+    size = Math.max(size, 84);   // never smaller than a comfortable toddler target
 
     var theme = nextTheme();
     var el = document.createElement('div');
     el.className = 'bubble';
     el.style.width = size + 'px';
     el.style.height = size + 'px';
+    if (galaxyOn) el.classList.add('is-space');
+
+    var tint = BUBBLE_TINTS[Math.floor(Math.random() * BUBBLE_TINTS.length)];
+    var tintEl = document.createElement('div');
+    tintEl.className = 'bubble-tint';
+    tintEl.style.background =
+      'radial-gradient(circle at 62% 68%, transparent 30%, ' + tint + ' 90%)';
+    el.appendChild(tintEl);
 
     var content = document.createElement('div');
     content.className = 'bubble-content';
@@ -146,22 +167,27 @@
     layer.appendChild(ring);
     window.setTimeout(function () { remove(ring); }, 950);
 
-    // A few soap droplets scatter and fall
-    var drops = 5 + Math.floor(Math.random() * 3);
-    for (var i = 0; i < drops; i++) {
-      var angle = (i / drops) * Math.PI * 2 + Math.random() * 0.7;
-      var dist = bubble.size * (0.5 + Math.random() * 0.45);
-      var d = document.createElement('div');
-      d.className = 'pop-droplet';
-      var ds = 6 + Math.random() * 8;
-      d.style.width = ds + 'px';
-      d.style.height = ds + 'px';
-      d.style.left = (cx - ds / 2) + 'px';
-      d.style.top = (cy - ds / 2) + 'px';
-      d.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-      d.style.setProperty('--dy', (Math.sin(angle) * dist * 0.6 + bubble.size * 0.35) + 'px');
-      layer.appendChild(d);
-      window.setTimeout(remove.bind(null, d), 900);
+    // The bubble bursts into a handful of tiny bubbles that scatter
+    // and tumble all the way down to the ground.
+    var rect = stage.getBoundingClientRect();
+    var minis = 9 + Math.floor(Math.random() * 5);
+    for (var i = 0; i < minis; i++) {
+      var m = document.createElement('div');
+      m.className = 'mini-bubble';
+      var ms = 8 + Math.random() * Math.max(10, bubble.size * 0.16);
+      m.style.width = ms + 'px';
+      m.style.height = ms + 'px';
+      m.style.left = (cx - ms / 2 + (Math.random() - 0.5) * bubble.size * 0.5) + 'px';
+      m.style.top = (cy - ms / 2 + (Math.random() - 0.5) * bubble.size * 0.3) + 'px';
+      var fall = rect.height - cy + 20;
+      m.style.setProperty('--dx', ((Math.random() - 0.5) * bubble.size * 1.6) + 'px');
+      m.style.setProperty('--fall', fall + 'px');
+      m.style.setProperty('--rot', (Math.random() * 240 - 120) + 'deg');
+      var dur = 1.1 + Math.random() * 0.9;
+      m.style.animationDuration = dur + 's';
+      m.style.animationDelay = (Math.random() * 0.12) + 's';
+      layer.appendChild(m);
+      window.setTimeout(remove.bind(null, m), (dur + 0.3) * 1000);
     }
 
     // The object springs free with its name
@@ -415,6 +441,14 @@
     pano.lastAz = null;
     pano.hasSensor = false;
     pano.lastInputAt = 0;
+
+    // Every bubble suits up: tiny astronaut helmets for the void.
+    for (var bi = 0; bi < bubbles.length; bi++) {
+      bubbles[bi].el.classList.add('is-space');
+    }
+
+    // The music-box gives way to something vast and slow.
+    ToddlAudio.setNightMode(true);
 
     // A special moment deserves a full stretch of night play.
     popCount = 0;
@@ -672,6 +706,7 @@
     if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
     if (cometTimer) { window.clearInterval(cometTimer); cometTimer = null; }
     if (rafId) { window.cancelAnimationFrame(rafId); rafId = null; }
+    ToddlAudio.setNightMode(false);
     stopParallax();
     if (stage) stage.innerHTML = '';
     bubbles = [];

@@ -507,11 +507,54 @@ button {
   to { transform: rotate(360deg); }
 }
 
+/* Per-bubble pastel wash, inserted under the content */
+.bubble-tint {
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
 .bubble-content {
+  position: relative;
   line-height: 1;
   pointer-events: none;
   opacity: 0.95;
   animation: content-bob 5s ease-in-out infinite;
+}
+
+/* Night mode: every passenger wears a tiny astronaut helmet — a
+   glass dome with a visor shine and a little antenna bead. */
+.bubble.is-space .bubble-content::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 1.34em;
+  height: 1.34em;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 0.05em solid rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.12) 32%, rgba(190, 220, 250, 0.10) 60%,
+      rgba(150, 190, 235, 0.22) 100%);
+  box-shadow:
+    inset -0.06em -0.08em 0.14em rgba(120, 160, 210, 0.35),
+    0 0 0.18em rgba(255, 255, 255, 0.45);
+}
+
+.bubble.is-space .bubble-content::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 0.14em;
+  height: 0.14em;
+  transform: translate(-50%, -0.82em);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #b9c6d4);
+  box-shadow: 0 0 0.1em rgba(255, 255, 255, 0.8);
 }
 
 @keyframes content-bob {
@@ -543,6 +586,27 @@ button {
 @keyframes ring-out {
   from { transform: scale(0.45); opacity: 0.9; }
   to   { transform: scale(1.5); opacity: 0; }
+}
+
+/* The pop bursts into tiny bubbles that tumble to the ground */
+.mini-bubble {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.25) 30%, rgba(255, 255, 255, 0) 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 55%,
+      rgba(168, 191, 212, 0.35) 92%, rgba(197, 182, 212, 0.4) 100%);
+  animation: mini-fall 1.5s cubic-bezier(0.45, 0.05, 0.85, 0.6) forwards;
+}
+
+@keyframes mini-fall {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.95; }
+  12%  { transform: translate(calc(var(--dx) * 0.3), -14px) rotate(calc(var(--rot) * 0.3)) scale(1.05); }
+  85%  { opacity: 0.9; }
+  100% { transform: translate(var(--dx), var(--fall)) rotate(var(--rot)) scale(0.82); opacity: 0; }
 }
 
 /* Tiny soap droplets scattering from a pop */

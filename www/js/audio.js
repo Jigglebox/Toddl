@@ -100,10 +100,10 @@
   }
 
   function scheduleNextNote() {
-    if (!settings.music) { musicTimer = null; return; }
+    if (!settings.music || nightMode) { musicTimer = null; return; }
     var wait = 2000 + Math.random() * 1600;
     musicTimer = window.setTimeout(function () {
-      if (!settings.music || !ctx) { musicTimer = null; return; }
+      if (!settings.music || nightMode || !ctx) { musicTimer = null; return; }
 
       // Constrained random walk, gently pulled back toward the middle.
       var step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)];
@@ -125,13 +125,84 @@
   }
 
   function startMusic() {
-    if (musicTimer || !settings.music) return;
+    if (!settings.music) return;
     if (!ensureContext()) return;
-    scheduleNextNote();
+    if (nightMode) {
+      if (!nightTimer) scheduleNightPad();
+    } else {
+      if (!musicTimer) scheduleNextNote();
+    }
   }
 
   function stopMusic() {
     if (musicTimer) { window.clearTimeout(musicTimer); musicTimer = null; }
+    if (nightTimer) { window.clearTimeout(nightTimer); nightTimer = null; }
+  }
+
+  /* ---------- Night score ----------
+     When the galaxy opens, the music-box falls silent and something
+     vast takes over: slow-swelling organ-like chords in open fifths
+     and octaves — C, A minor, F, G — each voice detuned a hair and
+     low-pass filtered, blooming over five seconds and dissolving
+     over eight. Interstellar church-organ awe, at lullaby volume. */
+
+  var nightMode = false;
+  var nightTimer = null;
+  var nightStep = 0;
+
+  var NIGHT_CHORDS = [
+    [130.81, 196.00, 261.63, 392.00],   // C:  C3  G3  C4  G4
+    [110.00, 164.81, 220.00, 329.63],   // Am: A2  E3  A3  E4
+    [87.31, 174.61, 261.63, 349.23],    // F:  F2  F3  C4  F4
+    [98.00, 146.83, 196.00, 293.66]     // G:  G2  D3  G3  D4
+  ];
+
+  function padVoice(freq, delay, peak, attack, hold, release) {
+    var t0 = ctx.currentTime + delay;
+    var end = t0 + attack + hold + release;
+    // two barely-detuned oscillators beat slowly against each other —
+    // that shimmer is what makes a pad feel alive and enormous
+    for (var i = 0; i < 2; i++) {
+      var osc = ctx.createOscillator();
+      osc.type = i === 0 ? 'sine' : 'triangle';
+      osc.frequency.value = freq * (i === 0 ? 1 : 1.0035);
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 900;
+      var g = ctx.createGain();
+      var v = peak * (i === 0 ? 1 : 0.4);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0002), t0 + attack);
+      g.gain.setValueAtTime(Math.max(v, 0.0002), t0 + attack + hold);
+      g.gain.exponentialRampToValueAtTime(0.0001, end);
+      osc.connect(lp); lp.connect(g); g.connect(master);
+      osc.start(t0);
+      osc.stop(end + 0.1);
+    }
+  }
+
+  function scheduleNightPad() {
+    if (!settings.music || !nightMode) { nightTimer = null; return; }
+    var chord = NIGHT_CHORDS[nightStep++ % NIGHT_CHORDS.length];
+    for (var i = 0; i < chord.length; i++) {
+      // lower voices carry the weight; each enters a breath later
+      var peak = i === 0 ? 0.055 : 0.05 / (i + 0.6);
+      padVoice(chord[i], i * 0.6, peak, 5, 4, 8);
+    }
+    // a distant high shimmer every other chord, like starlight
+    if (nightStep % 2 === 0) {
+      padVoice(chord[1] * 4, 3.5, 0.012, 6, 2, 7);
+    }
+    // chords overlap: the next swell begins as this one holds
+    nightTimer = window.setTimeout(scheduleNightPad, 11000);
+  }
+
+  function setNightMode(on) {
+    if (nightMode === on) return;
+    nightMode = on;
+    stopMusic();
+    nightStep = 0;
+    if (settings.music) startMusic();
   }
 
   function tone(freq, opts) {
@@ -161,10 +232,47 @@
 
   /* ---------- Named cues ---------- */
 
-  // Soft "blip" for a bubble pop: a quick airy tone that slides up.
+  // A real, satisfying POP: a burst of filtered noise (the skin
+  // bursting) over a fast downward thump (the air), with a tiny
+  // sparkle on top. Tactile but never harsh.
   function pop() {
-    var base = PENTATONIC[Math.floor(Math.random() * 5) + 3];
-    tone(base, { type: 'sine', dur: 0.35, vol: 0.5, glideTo: base * 1.5 });
+    if (!settings.sound || !ensureContext()) return;
+    var t0 = ctx.currentTime;
+
+    // noise burst
+    var len = Math.floor(ctx.sampleRate * 0.09);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 850 + Math.random() * 700;
+    band.Q.value = 1.1;
+    var ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.55, t0);
+    ng.gain.exponentialRampToValueAtTime(0.001, t0 + 0.1);
+    noise.connect(band); band.connect(ng); ng.connect(master);
+    noise.start(t0);
+
+    // air thump
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300 + Math.random() * 80, t0);
+    osc.frequency.exponentialRampToValueAtTime(70, t0 + 0.12);
+    var og = ctx.createGain();
+    og.gain.setValueAtTime(0.5, t0);
+    og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.16);
+    osc.connect(og); og.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + 0.18);
+
+    // sparkle
+    var base = PENTATONIC[Math.floor(Math.random() * 4) + 5];
+    tone(base, { type: 'sine', dur: 0.22, vol: 0.16, glideTo: base * 1.5, delay: 0.02 });
   }
 
   // A single calm note, e.g. picking up a piece.
@@ -350,6 +458,7 @@
     drift: drift,
     chime: chime,
     nightChime: nightChime,
+    setNightMode: setNightMode,
     countNote: countNote,
     say: say,
     getSetting: function (key) { return settings[key]; },

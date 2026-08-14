@@ -59,11 +59,21 @@ every single thing that happens on screen — not from spectacle.
 ## The four activities
 
 ### 1. Bubbles — vocabulary & cause-and-effect
-Large iridescent soap bubbles (up to 7 at a time, replenished within half a
-second of every pop) drift slowly up the screen, each carrying a familiar
-object: dog, cat, apple, moon, boat… Tap a bubble and it pops softly with a
-ripple and droplets; the object springs free with its written and spoken
-name.
+Iridescent soap bubbles in a mix of sizes and soft pastel tints (rose, sky
+blue, mint, gold, violet, aqua, clear — up to 7 at a time, replenished
+within half a second of every pop) drift slowly up the screen, each
+carrying a familiar object: dog, cat, apple, moon, boat… Tap one and it
+POPS — a real burst of filtered noise over an air-thump, tactile but never
+harsh — leaving a ripple ring while a dozen tiny bubbles scatter and
+tumble all the way down to the ground. The object springs free with its
+written and spoken name.
+
+During the galaxy night, every bubble passenger wears a tiny astronaut
+helmet (a glass dome with a visor shine and an antenna bead), and the
+music-box lullaby gives way to a vast slow score: organ-like chords in
+open fifths — C, A minor, F, G — swelling over five seconds and
+dissolving over eight, voices detuned a hair so they shimmer.
+Interstellar awe at lullaby volume; the music-box returns at dawn.
 
 **The moon secret:** popping the moon bubble opens a full **360° window
 into space** built from real James Webb Space Telescope photography
