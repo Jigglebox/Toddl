@@ -33,9 +33,9 @@
     { emoji: '\u{26BD}',  word: 'ball' }
   ];
 
-  var MAX_BUBBLES = 4;
-  var SPAWN_EVERY_MS = 2600;
-  var POPS_PER_VISIT = 7;    // after this many pops, flow to the next game
+  var MAX_BUBBLES = 7;
+  var SPAWN_EVERY_MS = 1500;
+  var POPS_PER_VISIT = 8;    // after this many pops, flow to the next game
 
   var stage = null;
   var layer = null;      // bubbles render above the scenery
@@ -46,6 +46,9 @@
   var lastTime = 0;
   var themeBag = [];
   var popCount = 0;
+  var galaxyOn = false;
+  var galaxyEl = null;
+  var cometTimer = null;
 
   // Deal themes from a shuffled bag so vocabulary rotates evenly.
   function nextTheme() {
@@ -184,12 +187,84 @@
     var idx = bubbles.indexOf(bubble);
     if (idx !== -1) bubbles.splice(idx, 1);
 
+    // A fresh bubble drifts in almost immediately — the sky never empties.
+    window.setTimeout(function () { spawnBubble(); }, 500);
+
+    // Popping the moon turns the whole sky into a swirling galaxy night.
+    if (bubble.theme.word === 'moon') enterGalaxy();
+
     // Enough popping for one visit — let the reveal finish, then
     // drift on to the next activity.
     popCount++;
-    if (popCount === POPS_PER_VISIT && window.ToddlFlow) {
-      flowTimer = window.setTimeout(function () { ToddlFlow.next(); }, 2400);
+    if (popCount >= POPS_PER_VISIT && !flowTimer && window.ToddlFlow) {
+      flowTimer = window.setTimeout(function () { ToddlFlow.next(); }, 1600);
     }
+  }
+
+  /* ---------- Galaxy night ----------
+     Popping the moon bubble melts the day sky into deep space: a
+     slowly counter-rotating spiral nebula, dozens of twinkling
+     stars, a glowing moon, and the occasional shooting star. The
+     bubbles keep drifting through it, lit against the dark. */
+
+  function enterGalaxy() {
+    if (galaxyOn || !stage) return;
+    galaxyOn = true;
+
+    ToddlAudio.nightChime();
+
+    galaxyEl = document.createElement('div');
+    galaxyEl.className = 'galaxy';
+
+    var swirlA = document.createElement('div');
+    swirlA.className = 'gx-swirl gx-swirl-a';
+    galaxyEl.appendChild(swirlA);
+    var swirlB = document.createElement('div');
+    swirlB.className = 'gx-swirl gx-swirl-b';
+    galaxyEl.appendChild(swirlB);
+
+    var core = document.createElement('div');
+    core.className = 'gx-core';
+    galaxyEl.appendChild(core);
+
+    for (var i = 0; i < 60; i++) {
+      var star = document.createElement('div');
+      star.className = 'gx-star';
+      var s = 1.5 + Math.random() * 2.8;
+      star.style.width = s + 'px';
+      star.style.height = s + 'px';
+      star.style.left = (Math.random() * 100) + '%';
+      star.style.top = (Math.random() * 100) + '%';
+      star.style.setProperty('--tw', (2 + Math.random() * 4) + 's');
+      star.style.animationDelay = (-Math.random() * 6) + 's';
+      if (Math.random() < 0.15) star.classList.add('gx-star-bright');
+      galaxyEl.appendChild(star);
+    }
+
+    var moon = document.createElement('div');
+    moon.className = 'gx-moon';
+    moon.textContent = '\u{1F319}';
+    galaxyEl.appendChild(moon);
+
+    // The galaxy sits above the day scenery, below the bubbles.
+    stage.insertBefore(galaxyEl, layer);
+
+    // A special moment deserves a full stretch of night play.
+    popCount = 0;
+    if (window.ToddlFlow && ToddlFlow.extend) ToddlFlow.extend();
+
+    cometTimer = window.setInterval(spawnComet, 6500);
+    window.setTimeout(spawnComet, 2200);
+  }
+
+  function spawnComet() {
+    if (!galaxyEl) return;
+    var comet = document.createElement('div');
+    comet.className = 'gx-comet';
+    comet.style.left = (30 + Math.random() * 60) + '%';
+    comet.style.top = (5 + Math.random() * 35) + '%';
+    galaxyEl.appendChild(comet);
+    window.setTimeout(function () { remove(comet); }, 1800);
   }
 
   function remove(node) {
@@ -233,9 +308,11 @@
     bubbles = [];
     lastTime = 0;
     popCount = 0;
-    spawnBubble(0.30);
-    spawnBubble(0.62);
-    spawnBubble(0.88);
+    spawnBubble(0.12);
+    spawnBubble(0.32);
+    spawnBubble(0.52);
+    spawnBubble(0.72);
+    spawnBubble(0.92);
     spawnTimer = window.setInterval(function () { spawnBubble(); }, SPAWN_EVERY_MS);
     rafId = window.requestAnimationFrame(tick);
   }
@@ -243,11 +320,14 @@
   function stop() {
     if (spawnTimer) { window.clearInterval(spawnTimer); spawnTimer = null; }
     if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
+    if (cometTimer) { window.clearInterval(cometTimer); cometTimer = null; }
     if (rafId) { window.cancelAnimationFrame(rafId); rafId = null; }
     if (stage) stage.innerHTML = '';
     bubbles = [];
     stage = null;
     layer = null;
+    galaxyEl = null;
+    galaxyOn = false;
   }
 
   window.ToddlBubbles = { start: start, stop: stop };

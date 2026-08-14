@@ -22,7 +22,7 @@
     { name: 'green',  fill: '#a3bd8e', edge: '#87a371', deep: '#779361' }
   ];
 
-  var ITEMS_PER_COLOR = 3;
+  var ITEMS_PER_COLOR = 2;
   var ROUNDS_PER_VISIT = 2;   // after this many sorts, flow to the next game
   var uid = 0;
 
@@ -232,7 +232,7 @@
         return;
       }
       layoutRound();
-    }, 2400);
+    }, 1600);
   }
 
   function start(stageEl) {

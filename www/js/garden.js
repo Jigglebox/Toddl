@@ -173,7 +173,7 @@
       if (!stage) return;
       if (window.ToddlFlow) { ToddlFlow.next(); return; }
       layoutGarden();
-    }, 5200);
+    }, 3600);
   }
 
   function flyButterfly() {

@@ -215,7 +215,7 @@
       }
       board.innerHTML = '';
       layoutRound();
-    }, 2600);
+    }, 1700);
   }
 
   function scatterStars() {

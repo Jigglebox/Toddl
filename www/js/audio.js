@@ -190,6 +190,15 @@
     tone(783.99, { dur: 0.9, vol: 0.36, delay: 0.44 });
   }
 
+  // Descending starlit sparkle for slipping into the galaxy night.
+  function nightChime() {
+    tone(1046.5, { dur: 1.0, vol: 0.30 });
+    tone(783.99, { dur: 1.1, vol: 0.30, delay: 0.28 });
+    tone(659.25, { dur: 1.2, vol: 0.28, delay: 0.56 });
+    tone(523.25, { dur: 1.6, vol: 0.26, delay: 0.84 });
+    tone(392.0,  { dur: 2.0, vol: 0.22, delay: 1.15 });
+  }
+
   // One note per count, stepping up the pentatonic scale.
   function countNote(index) {
     var freq = PENTATONIC[Math.min(index, PENTATONIC.length - 1)];
@@ -340,6 +349,7 @@
     place: place,
     drift: drift,
     chime: chime,
+    nightChime: nightChime,
     countNote: countNote,
     say: say,
     getSetting: function (key) { return settings[key]; },

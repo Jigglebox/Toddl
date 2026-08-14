@@ -17,9 +17,14 @@
   // The order games flow through when the child just keeps playing.
   var GAME_ORDER = ['bubbles', 'shapes', 'colors', 'garden'];
 
+  // No visit ever outstays its welcome: even if the child just pokes
+  // around without finishing anything, the next activity arrives.
+  var VISIT_MS = 70000;
+
   var activeGame = null;
   var btnHome = document.getElementById('btn-home');
   var leaveTimer = null;
+  var visitTimer = null;
 
   /* ---------- Screen switching ---------- */
 
@@ -47,6 +52,18 @@
     }, 750);
   }
 
+  function armVisitTimer() {
+    if (visitTimer) window.clearTimeout(visitTimer);
+    visitTimer = window.setTimeout(function () {
+      visitTimer = null;
+      if (activeGame) window.ToddlFlow.next();
+    }, VISIT_MS);
+  }
+
+  function clearVisitTimer() {
+    if (visitTimer) { window.clearTimeout(visitTimer); visitTimer = null; }
+  }
+
   function openGame(name, crossfade) {
     var game = GAMES[name];
     if (!game) return;
@@ -55,6 +72,7 @@
     btnHome.hidden = false;
     game.module().start(document.getElementById(game.stage));
     activeGame = name;
+    armVisitTimer();
   }
 
   /* ---------- Seamless flow ----------
@@ -70,11 +88,17 @@
       var idx = GAME_ORDER.indexOf(activeGame);
       var nextName = GAME_ORDER[(idx + 1) % GAME_ORDER.length];
       openGame(nextName, true);
+    },
+    // A game can ask for more time when something special is happening
+    // (e.g. the galaxy sky) so the moment isn't cut short.
+    extend: function () {
+      if (activeGame) armVisitTimer();
     }
   };
 
   function closeGame() {
     if (!activeGame) return;
+    clearVisitTimer();
     GAMES[activeGame].module().stop();
     activeGame = null;
   }

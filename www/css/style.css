@@ -604,6 +604,132 @@ button {
   100% { opacity: 0; transform: translateY(-26px); }
 }
 
+/* ============ Galaxy night (moon bubble popped) ============ */
+
+.galaxy {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 110% at 32% 22%,
+      #2a2552 0%, #1b1840 38%, #100e2c 68%, #080718 100%);
+  opacity: 0;
+  animation: galaxy-in 2.4s var(--ease-gentle) forwards;
+}
+
+@keyframes galaxy-in {
+  to { opacity: 1; }
+}
+
+/* Two counter-rotating nebula arms make the sky visibly swirl */
+.gx-swirl {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 170vmax;
+  height: 170vmax;
+  margin: -85vmax 0 0 -85vmax;
+  border-radius: 50%;
+  filter: blur(26px);
+  will-change: transform;
+  -webkit-mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.55) 38%, transparent 68%);
+  mask-image: radial-gradient(circle,
+    rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.55) 38%, transparent 68%);
+}
+
+.gx-swirl-a {
+  background: conic-gradient(from 0deg,
+    transparent 0%, rgba(129, 112, 201, 0.34) 9%, transparent 23%,
+    rgba(94, 135, 205, 0.26) 36%, transparent 52%,
+    rgba(196, 126, 178, 0.24) 65%, transparent 79%,
+    rgba(129, 112, 201, 0.30) 91%, transparent 100%);
+  animation: gx-spin 80s linear infinite;
+}
+
+.gx-swirl-b {
+  background: conic-gradient(from 140deg,
+    transparent 0%, rgba(96, 158, 214, 0.20) 12%, transparent 30%,
+    rgba(168, 118, 202, 0.22) 47%, transparent 62%,
+    rgba(120, 170, 200, 0.16) 78%, transparent 100%);
+  animation: gx-spin-reverse 130s linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes gx-spin         { to { transform: rotate(360deg); } }
+@keyframes gx-spin-reverse { to { transform: rotate(-360deg); } }
+
+/* Bright galactic heart, softly breathing */
+.gx-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46vmax;
+  height: 46vmax;
+  margin: -23vmax 0 0 -23vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 244, 224, 0.30) 0%, rgba(196, 156, 220, 0.18) 30%,
+    rgba(129, 112, 201, 0.10) 55%, transparent 75%);
+  animation: sun-breathe 11s ease-in-out infinite;
+}
+
+.gx-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: gx-twinkle var(--tw, 3s) ease-in-out infinite;
+}
+
+.gx-star-bright {
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.7);
+}
+
+@keyframes gx-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
+.gx-moon {
+  position: absolute;
+  top: 7%;
+  right: 6%;
+  font-size: clamp(56px, 13vmin, 110px);
+  line-height: 1;
+  filter: drop-shadow(0 0 26px rgba(236, 217, 160, 0.85));
+  animation: content-bob 8s ease-in-out infinite;
+}
+
+.gx-comet {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 3px rgba(255, 255, 255, 0.8);
+  animation: gx-comet-fly 1.7s ease-out forwards;
+}
+
+.gx-comet::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 1px;
+  width: 110px;
+  height: 2px;
+  transform-origin: left center;
+  transform: rotate(-31deg);
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.85), transparent);
+}
+
+@keyframes gx-comet-fly {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translate(-46vmin, 28vmin); opacity: 0; }
+}
+
 /* ============ Shapes ============ */
 
 #screen-shapes .game-stage {

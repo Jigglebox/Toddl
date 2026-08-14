@@ -42,12 +42,15 @@ every single thing that happens on screen — not from spectacle.
    hills — and every touchable thing idles with a slow bob or sway. Alive
    enough to be mesmerizing, never fast enough to distract from the
    child's own actions.
-10. **Play flows by itself.** When an activity reaches a natural resting
-    point (seven bubbles popped, two puzzles done, the garden fully
-    bloomed), the next activity gently crossfades in — bubbles → shapes →
-    colors → garden → bubbles. A toddler playing alone keeps playing;
-    no menu, no parent needed. The home screen still allows jumping
-    straight to any activity.
+10. **Play flows by itself, always.** When an activity reaches a natural
+    resting point (eight bubbles popped, two puzzles done, two sorts
+    done, the garden fully bloomed), the next activity gently crossfades
+    in — bubbles → shapes → colors → garden → bubbles. And if a child
+    just pokes around without finishing anything, a 70-second visit
+    timer rotates play anyway, so there is *always* something new to do
+    with no menu and no parent needed. Inter-round pauses are short
+    (~1.6s) so the screen is never idle. The home screen still allows
+    jumping straight to any activity.
 11. **Landscape, on a lap.** Toddlers don't hold phones; they set them
     down. The native apps lock to landscape, the PWA manifest requests
     it, and in a portrait browser a calm "turn me sideways" screen shows
@@ -56,9 +59,20 @@ every single thing that happens on screen — not from spectacle.
 ## The four activities
 
 ### 1. Bubbles — vocabulary & cause-and-effect
-Large soap bubbles (at most 4 at a time) drift slowly up the screen, each
-carrying a familiar object: dog, cat, apple, moon, boat… Tap a bubble and it
-pops softly; the object floats free with its written and spoken name.
+Large iridescent soap bubbles (up to 7 at a time, replenished within half a
+second of every pop) drift slowly up the screen, each carrying a familiar
+object: dog, cat, apple, moon, boat… Tap a bubble and it pops softly with a
+ripple and droplets; the object springs free with its written and spoken
+name.
+
+**The moon secret:** popping the moon bubble melts the day sky into a
+swirling galaxy night — two counter-rotating nebula arms, sixty twinkling
+stars, a glowing moon, and the occasional shooting star, with the bubbles
+still drifting through it. It's the one deliberately awe-scaled moment in
+the app: otherworldly, but still slow, dark, and quiet — mesmerizing rather
+than stimulating. Discovering it teaches that exploring is rewarded. The
+visit timer resets when it triggers so the night gets a full stretch of
+play, and the next visit to Bubbles dawns back to day.
 
 - *Teaches:* object vocabulary, pointing/tapping precision, visual tracking,
   cause-and-effect.
