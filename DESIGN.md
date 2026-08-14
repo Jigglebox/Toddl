@@ -65,20 +65,28 @@ object: dog, cat, apple, moon, boat… Tap a bubble and it pops softly with a
 ripple and droplets; the object springs free with its written and spoken
 name.
 
-**The moon secret:** popping the moon bubble melts the day sky into deep
-space — a fiery ring nebula (orange, crimson, gold, with teal and violet
-outer arms) swirling slowly around a dark void, a blazing cross-flare star
-at its heart, eighty twinkling stars, shooting stars, and the bubbles still
-drifting through it all. The sky is built from four parallax layers, and
-**tilting the phone looks around the galaxy**: the star field barely moves
-while the nebula and core sweep past at increasing depths, so the scene
-reads as real space behind the glass (iOS motion permission is requested
-from the very pop gesture that opens the night; a finger-drift fallback
-covers devices without a gyroscope, plus a slow automatic drift so it
-breathes even untouched). It's the one deliberately awe-scaled moment in
-the app: otherworldly, but still slow, dark, and quiet — mesmerizing rather
-than stimulating. The visit timer resets when it triggers so the night gets
-a full stretch of play, and the next visit to Bubbles dawns back to day.
+**The moon secret:** popping the moon bubble opens a full **360° window
+into space**. The night sky is a panoramic skybox painted onto a canvas in
+saturated, additive color over true black — cinematic deep space, not a
+pastel painting — holding four distinct vistas: the fiery ring nebula
+(turbulent magenta/orange/gold gas glowing from within around a dark void,
+with a blazing cross-flare star at its heart), towering magenta-purple
+pillars crowned with newborn stars, a cyan veil wrapped around a burning
+star cluster, and a distant tilted spiral galaxy — plus a milky band,
+~900 painted stars, twinkling overlay stars, and shooting stars.
+
+**Turning the phone actually looks around the sphere.** Device orientation
+is converted to a true view direction (rotation matrix → azimuth +
+elevation), so the sky pans exactly opposite the phone's motion, wraps
+seamlessly through full 360° turns, and tilts up and down — like holding a
+window into space. iOS motion permission is requested from the very pop
+gesture that opens the night; without a gyroscope, dragging a finger pans
+the view, and after four idle seconds the sky slowly revolves on its own
+(a full turn in about four minutes). The bubbles keep drifting in front of
+it all. It's the one deliberately awe-scaled moment in the app —
+otherworldly, but still slow and quiet. The visit timer resets when it
+triggers so the night gets a full stretch of play, and the next visit to
+Bubbles dawns back to day.
 
 - *Teaches:* object vocabulary, pointing/tapping precision, visual tracking,
   cause-and-effect.

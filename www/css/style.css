@@ -614,72 +614,30 @@ button {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(120% 120% at 50% 46%,
-      #171126 0%, #0d0a1c 42%, #060411 76%, #030209 100%);
+  background: #010004;
   opacity: 0;
   animation: galaxy-in 2.6s var(--ease-gentle) forwards;
+}
+
+/* The panning 360-degree window: two copies of the painted sky sit
+   side by side inside; translating it looks around the sphere */
+.gx-window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
 }
 
 @keyframes galaxy-in {
   to { opacity: 1; }
 }
 
-/* Parallax layers — oversized so panning never shows an edge */
-.gx-layer {
-  position: absolute;
-  inset: -12%;
-  will-change: transform;
-}
-
-/* Rotating carriers for the nebula clouds */
-.gx-ring {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: 0;
-  height: 0;
-  animation: gx-spin 90s linear infinite;
-}
-
-.gx-ring-b {
-  animation: gx-spin-reverse 150s linear infinite;
-}
-
-@keyframes gx-spin         { to { transform: rotate(360deg); } }
-@keyframes gx-spin-reverse { to { transform: rotate(-360deg); } }
-
-/* A single nebula cloud: luminous blurred blob, stretched along the
-   ring so overlapping clouds read as swirling arms of gas */
-.gx-cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(18px);
-  mix-blend-mode: screen;
-}
-
-/* The dark heart of the galaxy — the void the ring swirls around */
-.gx-void {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: 66vmax;
-  height: 66vmax;
-  margin: -33vmax 0 0 -33vmax;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgba(3, 2, 9, 0.95) 0%, rgba(3, 2, 9, 0.82) 24%,
-    rgba(3, 2, 9, 0.4) 40%, transparent 56%);
-}
-
 /* Blazing central star */
 .gx-sunglow {
   position: absolute;
-  left: 50%;
-  top: 46%;
   width: 52vmax;
   height: 52vmax;
-  margin: -26vmax 0 0 -26vmax;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   mix-blend-mode: screen;
   background: radial-gradient(circle,
@@ -690,11 +648,9 @@ button {
 
 .gx-sun {
   position: absolute;
-  left: 50%;
-  top: 46%;
   width: 3.4vmax;
   height: 3.4vmax;
-  margin: -1.7vmax 0 0 -1.7vmax;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle,
     #fffdf5 0%, #ffe9b8 45%, rgba(255, 190, 120, 0.6) 75%, transparent 100%);
@@ -758,8 +714,7 @@ button {
 
 .gx-moon {
   position: absolute;
-  top: 9%;
-  right: 8%;
+  transform: translate(-50%, -50%);
   font-size: clamp(56px, 13vmin, 110px);
   line-height: 1;
   filter: drop-shadow(0 0 26px rgba(236, 217, 160, 0.85));
