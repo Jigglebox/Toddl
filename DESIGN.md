@@ -18,9 +18,13 @@ every single thing that happens on screen — not from spectacle.
 3. **Muted palette.** A warm cream ground (`#faf6ef`) with desaturated sage,
    dusty blue, blush, butter, and lilac. No pure primaries, no flashing, no
    rapid color changes.
-4. **Quiet audio.** All sounds are synthesized soft sine/triangle tones on a
-   pentatonic scale (so overlapping notes always harmonize), played at low
-   gain. Words are spoken slowly (speech rate 0.75). No music loop.
+4. **Quiet audio.** All sound effects are synthesized soft sine/triangle
+   tones on a pentatonic scale (so overlapping notes always harmonize),
+   played at low gain. No music loop. Every spoken word ships as a
+   pre-recorded natural voice clip (calm neural TTS, loudness-normalized,
+   slightly slowed) so the voice is warm and identical on every device —
+   system speech synthesis is only a fallback, with the most natural
+   available voice auto-selected.
 5. **No fail states, ever.** A shape dropped in the wrong place drifts calmly
    back — a soft downward tone, never a buzzer. Montessori materials are
    self-correcting; the material itself shows the answer.
@@ -96,8 +100,13 @@ spoken words) and a note encouraging co-play. Settings persist in
 
 - **Zero dependencies, no build step.** Plain HTML/CSS/JS with classic
   scripts. Serve the folder (or open over any static host) and it runs.
-- **All art is inline SVG / CSS**, all audio is WebAudio-synthesized, so the
-  repo ships no binary assets and the whole app is a few tens of KB.
+- **All art is inline SVG / CSS** and all sound effects are
+  WebAudio-synthesized. The only binary assets are the ~29 spoken-word
+  clips in `www/audio/words/` (≈0.8 MB total), generated offline with
+  Piper neural TTS (`en-us-lessac-medium`, slowed ~15%, silence-trimmed,
+  loudness-normalized to −20 LUFS). Regenerate or re-record them freely —
+  the app just plays `<slug>.mp3` for each word, so a parent's own
+  recorded voice works too.
 - **Offline-first PWA:** a cache-first service worker precaches everything on
   first visit — important for the "toddler on a plane" use case.
 - Each game is a self-contained module exposing `start(stageEl)` / `stop()`;

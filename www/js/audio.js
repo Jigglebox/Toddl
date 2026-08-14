@@ -57,6 +57,7 @@
   function unlock() {
     if (unlocked) return;
     if (ensureContext()) unlocked = true;
+    preloadClips();
   }
 
   function tone(freq, opts) {
@@ -121,20 +122,133 @@
     tone(freq, { dur: 0.55, vol: 0.45 });
   }
 
-  /* ---------- Speech ---------- */
+  /* ---------- Spoken words ----------
+     Every word in the app ships as a pre-recorded natural voice
+     clip (audio/words/*.mp3) — calm, warm, and consistent on
+     every device. System speech synthesis is only a fallback
+     for words that have no clip. */
 
+  var WORD_CLIPS = [
+    'dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
+    'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
+    'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
+    'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four',
+    'five'
+  ];
+
+  var clipCache = {};
+  var currentClip = null;
   var speaking = false;
 
+  function slugFor(word) {
+    return String(word).toLowerCase().trim().replace(/\s+/g, '-');
+  }
+
+  function clipFor(word) {
+    var slug = slugFor(word);
+    if (WORD_CLIPS.indexOf(slug) === -1) return null;
+    if (!clipCache[slug]) {
+      var audio = new Audio('audio/words/' + slug + '.mp3');
+      audio.preload = 'auto';
+      clipCache[slug] = audio;
+    }
+    return clipCache[slug];
+  }
+
+  // Warm the cache so first taps don't wait on disk/network.
+  function preloadClips() {
+    for (var i = 0; i < WORD_CLIPS.length; i++) clipFor(WORD_CLIPS[i]);
+  }
+
   function say(word, opts) {
-    if (!settings.voice || !('speechSynthesis' in window)) return;
+    if (!settings.voice) return;
     opts = opts || {};
     // Don't queue up a backlog when a toddler taps rapidly.
+    if (speaking && !opts.interrupt) return;
+
+    var clip = clipFor(word);
+    if (clip) {
+      try {
+        if (currentClip && !currentClip.paused) {
+          currentClip.pause();
+          currentClip.currentTime = 0;
+        }
+        currentClip = clip;
+        clip.currentTime = 0;
+        clip.volume = 0.9;
+        speaking = true;
+        clip.onended = function () { speaking = false; };
+        clip.onerror = function () { speaking = false; };
+        var p = clip.play();
+        if (p && p.catch) {
+          p.catch(function () {
+            // Autoplay policy or decode hiccup — fall back to TTS.
+            speaking = false;
+            sayWithTts(word, opts);
+          });
+        }
+      } catch (e) {
+        speaking = false;
+        sayWithTts(word, opts);
+      }
+      return;
+    }
+    sayWithTts(word, opts);
+  }
+
+  /* System speech-synthesis fallback: pick the most natural voice
+     available, and avoid the settings that make TTS sound robotic
+     (over-slow rate, raised pitch, default low-quality voice). */
+
+  var pickedVoice;   // undefined = not looked up yet, null = none found
+
+  function pickVoice() {
+    if (pickedVoice !== undefined) return pickedVoice;
+    var voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return null;   // not loaded yet — retry next call
+
+    var best = null;
+    var bestScore = -1;
+    for (var i = 0; i < voices.length; i++) {
+      var v = voices[i];
+      if (v.lang && v.lang.toLowerCase().indexOf('en') !== 0) continue;
+      var name = (v.name || '').toLowerCase();
+      var score = 0;
+      // Neural/premium voices advertise themselves in the name.
+      if (name.indexOf('natural') !== -1) score += 8;
+      if (name.indexOf('neural') !== -1) score += 8;
+      if (name.indexOf('premium') !== -1) score += 6;
+      if (name.indexOf('enhanced') !== -1) score += 6;
+      // Known-good defaults per platform.
+      if (name.indexOf('samantha') !== -1) score += 5;   // iOS/macOS
+      if (name.indexOf('google') !== -1) score += 4;     // Android/Chrome
+      if (name.indexOf('serena') !== -1 || name.indexOf('karen') !== -1) score += 3;
+      if (v.localService) score += 2;                    // no network lag
+      if (v.default) score += 1;
+      if (score > bestScore) { bestScore = score; best = v; }
+    }
+    pickedVoice = best;
+    return best;
+  }
+
+  if ('speechSynthesis' in window) {
+    // Voice lists load asynchronously; re-pick when they arrive.
+    window.speechSynthesis.onvoiceschanged = function () {
+      pickedVoice = undefined;
+    };
+  }
+
+  function sayWithTts(word, opts) {
+    if (!('speechSynthesis' in window)) return;
+    opts = opts || {};
     if (speaking && !opts.interrupt) return;
     try {
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(word);
-      u.rate = 0.75;   // slow and clear for young ears
-      u.pitch = 1.1;
+      var voice = pickVoice();
+      if (voice) u.voice = voice;
+      u.rate = 0.9;    // near-natural pace; over-slowing sounds robotic
+      u.pitch = 1.0;
       u.volume = 0.9;
       u.onstart = function () { speaking = true; };
       u.onend = function () { speaking = false; };

@@ -1,7 +1,11 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v2';
+var CACHE = 'toddl-v3';
+var WORDS = ['dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
+  'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
+  'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
+  'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four', 'five'];
 var ASSETS = [
   '.',
   'index.html',
@@ -16,7 +20,7 @@ var ASSETS = [
   'icons/icon-192.webp',
   'icons/icon-512.webp',
   'manifest.webmanifest'
-];
+].concat(WORDS.map(function (w) { return 'audio/words/' + w + '.mp3'; }));
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
