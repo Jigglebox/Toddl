@@ -1,13 +1,14 @@
 /* ============================================================
-   Bubbles — large soap bubbles drift slowly up the screen, each
-   carrying a familiar object. Tap one: it pops softly, the
-   object floats free with its written + spoken name.
+   Bubbles — large iridescent soap bubbles drift up a soft
+   morning sky, each carrying a familiar object. Tap one: it
+   pops with a ripple and a few tiny droplets, and the object
+   springs free with its written + spoken name.
 
    Montessori notes:
      - one action (tap), immediate visible cause-and-effect
      - real-world vocabulary, one word at a time
-     - at most 4 bubbles on screen, moving slowly, so the child
-       can visually track and choose deliberately
+     - at most 4 bubbles on screen, moving on slow compound
+       sway paths the child's eyes can track and predict
    ============================================================ */
 
 (function () {
@@ -34,13 +35,17 @@
 
   var MAX_BUBBLES = 4;
   var SPAWN_EVERY_MS = 2600;
+  var POPS_PER_VISIT = 7;    // after this many pops, flow to the next game
 
   var stage = null;
-  var bubbles = [];      // { el, x, y, size, speed, wobblePhase, wobbleAmp, theme, popped }
+  var layer = null;      // bubbles render above the scenery
+  var bubbles = [];
   var rafId = null;
   var spawnTimer = null;
+  var flowTimer = null;
   var lastTime = 0;
   var themeBag = [];
+  var popCount = 0;
 
   // Deal themes from a shuffled bag so vocabulary rotates evenly.
   function nextTheme() {
@@ -83,9 +88,14 @@
       y: typeof yFactor === 'number'
         ? (rect.height - size) * yFactor
         : rect.height + size,
-      speed: 18 + Math.random() * 10,          // px per second — very slow
-      wobblePhase: Math.random() * Math.PI * 2,
-      wobbleAmp: 8 + Math.random() * 8,
+      speed: 16 + Math.random() * 9,           // px per second — very slow
+      // Two stacked sine sways at different frequencies read as a
+      // natural wander instead of a metronome wiggle.
+      swayPhase1: Math.random() * Math.PI * 2,
+      swayPhase2: Math.random() * Math.PI * 2,
+      swayAmp1: 10 + Math.random() * 10,
+      swayAmp2: 4 + Math.random() * 5,
+      breathePhase: Math.random() * Math.PI * 2,
       popped: false
     };
 
@@ -94,15 +104,20 @@
       popBubble(bubble);
     });
 
-    stage.appendChild(el);
+    layer.appendChild(el);
     render(bubble, 0);
     bubbles.push(bubble);
   }
 
   function render(bubble, t) {
-    var wobble = Math.sin(bubble.wobblePhase + t * 0.0006) * bubble.wobbleAmp;
+    var sway = Math.sin(bubble.swayPhase1 + t * 0.00042) * bubble.swayAmp1 +
+               Math.sin(bubble.swayPhase2 + t * 0.00113) * bubble.swayAmp2;
     bubble.el.style.transform =
-      'translate(' + (bubble.x + wobble) + 'px,' + bubble.y + 'px)';
+      'translate(' + (bubble.x + sway) + 'px,' + bubble.y + 'px)';
+    if (!bubble.popped) {
+      // Films breathe: a barely-there pulse in size keeps them alive.
+      bubble.el.style.scale = String(1 + Math.sin(bubble.breathePhase + t * 0.0011) * 0.018);
+    }
   }
 
   function popBubble(bubble) {
@@ -112,8 +127,41 @@
     ToddlAudio.pop();
     ToddlAudio.say(bubble.theme.word);
 
+    bubble.el.style.scale = '';
     bubble.el.classList.add('is-popping');
 
+    var cx = bubble.x + bubble.size / 2;
+    var cy = bubble.y + bubble.size / 2;
+
+    // Ripple ring where the film burst
+    var ring = document.createElement('div');
+    ring.className = 'pop-ring';
+    ring.style.width = bubble.size + 'px';
+    ring.style.height = bubble.size + 'px';
+    ring.style.left = bubble.x + 'px';
+    ring.style.top = bubble.y + 'px';
+    layer.appendChild(ring);
+    window.setTimeout(function () { remove(ring); }, 950);
+
+    // A few soap droplets scatter and fall
+    var drops = 5 + Math.floor(Math.random() * 3);
+    for (var i = 0; i < drops; i++) {
+      var angle = (i / drops) * Math.PI * 2 + Math.random() * 0.7;
+      var dist = bubble.size * (0.5 + Math.random() * 0.45);
+      var d = document.createElement('div');
+      d.className = 'pop-droplet';
+      var ds = 6 + Math.random() * 8;
+      d.style.width = ds + 'px';
+      d.style.height = ds + 'px';
+      d.style.left = (cx - ds / 2) + 'px';
+      d.style.top = (cy - ds / 2) + 'px';
+      d.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      d.style.setProperty('--dy', (Math.sin(angle) * dist * 0.6 + bubble.size * 0.35) + 'px');
+      layer.appendChild(d);
+      window.setTimeout(remove.bind(null, d), 900);
+    }
+
+    // The object springs free with its name
     var reveal = document.createElement('div');
     reveal.className = 'pop-reveal';
     var emoji = document.createElement('div');
@@ -128,17 +176,24 @@
     reveal.appendChild(word);
     reveal.style.left = (bubble.x + bubble.size * 0.12) + 'px';
     reveal.style.top = (bubble.y + bubble.size * 0.15) + 'px';
-    stage.appendChild(reveal);
+    layer.appendChild(reveal);
 
-    window.setTimeout(function () {
-      if (bubble.el.parentNode) bubble.el.parentNode.removeChild(bubble.el);
-    }, 500);
-    window.setTimeout(function () {
-      if (reveal.parentNode) reveal.parentNode.removeChild(reveal);
-    }, 2300);
+    window.setTimeout(function () { remove(bubble.el); }, 550);
+    window.setTimeout(function () { remove(reveal); }, 2500);
 
     var idx = bubbles.indexOf(bubble);
     if (idx !== -1) bubbles.splice(idx, 1);
+
+    // Enough popping for one visit — let the reveal finish, then
+    // drift on to the next activity.
+    popCount++;
+    if (popCount === POPS_PER_VISIT && window.ToddlFlow) {
+      flowTimer = window.setTimeout(function () { ToddlFlow.next(); }, 2400);
+    }
+  }
+
+  function remove(node) {
+    if (node && node.parentNode) node.parentNode.removeChild(node);
   }
 
   function tick(t) {
@@ -151,7 +206,7 @@
       b.y -= b.speed * dt;
       if (b.y < -b.size * 1.5) {
         // Drifted off the top unpopped — quietly recycle it.
-        if (b.el.parentNode) b.el.parentNode.removeChild(b.el);
+        remove(b.el);
         bubbles.splice(i, 1);
       } else {
         render(b, t);
@@ -163,8 +218,21 @@
   function start(stageEl) {
     stage = stageEl;
     stage.innerHTML = '';
+    ToddlScenery.build(stage, {
+      sun: { x: '80%', y: '14%', size: '30vmin',
+             color: 'rgba(250, 246, 239, 0.95)', halo: 'rgba(236, 217, 160, 0.30)' },
+      clouds: 3,
+      cloudTint: 0.65,
+      shimmer: true
+    });
+    layer = document.createElement('div');
+    layer.style.position = 'absolute';
+    layer.style.inset = '0';
+    stage.appendChild(layer);
+
     bubbles = [];
     lastTime = 0;
+    popCount = 0;
     spawnBubble(0.30);
     spawnBubble(0.62);
     spawnBubble(0.88);
@@ -174,10 +242,12 @@
 
   function stop() {
     if (spawnTimer) { window.clearInterval(spawnTimer); spawnTimer = null; }
+    if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
     if (rafId) { window.cancelAnimationFrame(rafId); rafId = null; }
     if (stage) stage.innerHTML = '';
     bubbles = [];
     stage = null;
+    layer = null;
   }
 
   window.ToddlBubbles = { start: start, stop: stop };

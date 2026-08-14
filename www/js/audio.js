@@ -16,7 +16,8 @@
 
   var settings = {
     sound: true,
-    voice: true
+    voice: true,
+    music: true
   };
 
   // C-major pentatonic across two octaves — any random pair is consonant.
@@ -30,6 +31,7 @@
         var saved = JSON.parse(raw);
         if (typeof saved.sound === 'boolean') settings.sound = saved.sound;
         if (typeof saved.voice === 'boolean') settings.voice = saved.voice;
+        if (typeof saved.music === 'boolean') settings.music = saved.music;
       }
     } catch (e) { /* first run or private mode — defaults are fine */ }
   }
@@ -58,6 +60,78 @@
     if (unlocked) return;
     if (ensureContext()) unlocked = true;
     preloadClips();
+    startMusic();
+  }
+
+  /* ---------- Lullaby ----------
+     A generative music box: single soft bell notes wander up and
+     down a pentatonic scale every few seconds, occasionally joined
+     by a low harmonic. Never a loop, never a beat — just a slow,
+     consonant sparkle underneath the play. */
+
+  var MELODY = [261.63, 293.66, 329.63, 392.0, 440.0,
+                523.25, 587.33, 659.25, 783.99, 880.0];
+  var musicTimer = null;
+  var melodyIndex = 4;
+  var notesSinceHarmony = 0;
+
+  function bellNote(freq, vol, delay) {
+    if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var partials = [
+      { ratio: 1,    amp: 1.0 },
+      { ratio: 2,    amp: 0.28 },
+      { ratio: 2.98, amp: 0.08 }     // slightly inharmonic = music-box shimmer
+    ];
+    for (var i = 0; i < partials.length; i++) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * partials[i].ratio, t0);
+      var gain = ctx.createGain();
+      var peak = vol * partials[i].amp;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t0 + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(t0);
+      osc.stop(t0 + 2.7);
+    }
+  }
+
+  function scheduleNextNote() {
+    if (!settings.music) { musicTimer = null; return; }
+    var wait = 2000 + Math.random() * 1600;
+    musicTimer = window.setTimeout(function () {
+      if (!settings.music || !ctx) { musicTimer = null; return; }
+
+      // Constrained random walk, gently pulled back toward the middle.
+      var step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)];
+      if (melodyIndex < 3) step = Math.abs(step);
+      if (melodyIndex > MELODY.length - 4) step = -Math.abs(step);
+      melodyIndex = Math.max(0, Math.min(MELODY.length - 1, melodyIndex + step));
+
+      bellNote(MELODY[melodyIndex], 0.10);
+
+      // Every few notes, a low fifth hums along underneath.
+      notesSinceHarmony++;
+      if (notesSinceHarmony >= 3 + Math.floor(Math.random() * 3)) {
+        notesSinceHarmony = 0;
+        bellNote(MELODY[Math.max(0, melodyIndex - 3)] / 2, 0.05, 0.35);
+      }
+
+      scheduleNextNote();
+    }, wait);
+  }
+
+  function startMusic() {
+    if (musicTimer || !settings.music) return;
+    if (!ensureContext()) return;
+    scheduleNextNote();
+  }
+
+  function stopMusic() {
+    if (musicTimer) { window.clearTimeout(musicTimer); musicTimer = null; }
   }
 
   function tone(freq, opts) {
@@ -272,6 +346,9 @@
     setSetting: function (key, value) {
       settings[key] = value;
       saveSettings();
+      if (key === 'music') {
+        if (value) startMusic(); else stopMusic();
+      }
     }
   };
 })();

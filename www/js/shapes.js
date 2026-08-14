@@ -22,11 +22,13 @@
   ];
 
   var PIECES_PER_ROUND = 3;
+  var ROUNDS_PER_VISIT = 2;   // after this many puzzles, flow to the next game
 
   var stage = null;
   var board = null;
   var round = [];        // { shape, slotEl, pieceEl, homeX, homeY, slotX, slotY, placed }
   var roundTimer = null;
+  var roundsDone = 0;
 
   /* ---------- SVG geometry ---------- */
 
@@ -110,7 +112,10 @@
       pieceEl.className = 'shape-piece';
       pieceEl.style.left = homeX + 'px';
       pieceEl.style.top = homeY + 'px';
-      pieceEl.appendChild(makeShapeSvg(shape.name, size, 'piece-fill', shape.fill, shape.edge));
+      var pieceInner = document.createElement('div');
+      pieceInner.className = 'piece-inner';
+      pieceInner.appendChild(makeShapeSvg(shape.name, size, 'piece-fill', shape.fill, shape.edge));
+      pieceEl.appendChild(pieceInner);
       board.appendChild(pieceEl);
 
       var entry = {
@@ -147,14 +152,23 @@
     el.addEventListener('pointermove', function (e) {
       if (!dragging) return;
       var rect = board.getBoundingClientRect();
-      el.style.left = ((e.clientX - rect.left) - offsetX) + 'px';
-      el.style.top = ((e.clientY - rect.top) - offsetY) + 'px';
+      var x = (e.clientX - rect.left) - offsetX;
+      var y = (e.clientY - rect.top) - offsetY;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+
+      // The matching outline beckons softly as the shape gets close.
+      var dx = x - entry.slotX;
+      var dy = y - entry.slotY;
+      var near = Math.sqrt(dx * dx + dy * dy) < entry.size * 0.9;
+      entry.slotEl.classList.toggle('is-near', near);
     });
 
     function release() {
       if (!dragging) return;
       dragging = false;
       el.classList.remove('is-dragging');
+      entry.slotEl.classList.remove('is-near');
 
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
@@ -191,9 +205,14 @@
 
     ToddlAudio.chime();
     scatterStars();
+    roundsDone++;
 
     roundTimer = window.setTimeout(function () {
       if (!board) return;
+      if (roundsDone >= ROUNDS_PER_VISIT && window.ToddlFlow) {
+        ToddlFlow.next();
+        return;
+      }
       board.innerHTML = '';
       layoutRound();
     }, 2600);
@@ -217,6 +236,15 @@
   function start(stageEl) {
     stage = stageEl;
     stage.innerHTML = '';
+    roundsDone = 0;
+    ToddlScenery.build(stage, {
+      sun: { x: '16%', y: '12%', size: '24vmin',
+             color: 'rgba(236, 217, 160, 0.55)', halo: 'rgba(236, 217, 160, 0.22)' },
+      clouds: 2,
+      cloudTint: 0.55,
+      hills: { front: 'rgba(183, 201, 168, 0.35)', back: 'rgba(183, 201, 168, 0.20)',
+               height: '16%' }
+    });
     board = document.createElement('div');
     board.className = 'shape-board';
     stage.appendChild(board);

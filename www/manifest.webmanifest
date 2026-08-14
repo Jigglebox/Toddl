@@ -4,7 +4,7 @@
   "description": "Calm, Montessori-style games for toddlers",
   "start_url": ".",
   "display": "fullscreen",
-  "orientation": "any",
+  "orientation": "landscape",
   "background_color": "#faf6ef",
   "theme_color": "#faf6ef",
   "icons": [

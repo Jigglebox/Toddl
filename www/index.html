@@ -92,6 +92,19 @@
     <div class="game-stage" id="stage-garden"></div>
   </section>
 
+  <!-- Shown in portrait: Toddl is a lap game, played sideways -->
+  <div id="rotate-hint" aria-hidden="true">
+    <svg viewBox="0 0 100 100" class="rotate-phone">
+      <rect x="34" y="14" width="32" height="60" rx="8"
+        fill="none" stroke="#8a8177" stroke-width="5"/>
+      <circle cx="50" cy="64" r="3.5" fill="#8a8177"/>
+      <path d="M74 34 A28 28 0 0 1 84 56" fill="none" stroke="#b7c9a8"
+        stroke-width="5" stroke-linecap="round"/>
+      <path d="M87 48 L84 58 L75 53 Z" fill="#b7c9a8"/>
+    </svg>
+    <p>turn me sideways</p>
+  </div>
+
   <!-- Home button, shown on game screens -->
   <button id="btn-home" class="home-button" aria-label="Go home" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -123,6 +136,13 @@
         </button>
       </div>
 
+      <div class="setting-row">
+        <span class="setting-name">Soft lullaby</span>
+        <button class="toggle" id="toggle-music" role="switch" aria-checked="true" aria-label="Soft lullaby">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+
       <p class="parents-tip">
         Tip: sit with your child and name what they see. The games are
         designed to be played together.
@@ -133,6 +153,7 @@
   </section>
 
   <script src="js/audio.js"></script>
+  <script src="js/scenery.js"></script>
   <script src="js/bubbles.js"></script>
   <script src="js/shapes.js"></script>
   <script src="js/colors.js"></script>

@@ -1,7 +1,8 @@
 /* ============================================================
    Toddl — calm Montessori-style toddler games
-   Design language: soft cream ground, muted pastels, slow
-   motion, big rounded touch targets, no flashing or clutter.
+   Design language: soft layered skies, muted pastels, slow
+   drifting scenery, springy-but-gentle motion, big rounded
+   touch targets, no flashing or clutter. Everything breathes.
    ============================================================ */
 
 :root {
@@ -28,6 +29,7 @@
 
   /* Slow everything down: toddlers need time to track motion */
   --ease-gentle: cubic-bezier(0.33, 0.0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.5, 1);
 }
 
 * {
@@ -64,6 +66,69 @@ button {
   touch-action: manipulation;
 }
 
+/* ============ Shared scenery ============ */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-sun {
+  position: absolute;
+  border-radius: 50%;
+  animation: sun-breathe 9s ease-in-out infinite;
+}
+
+@keyframes sun-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+.scene-cloud {
+  position: absolute;
+  animation: cloud-drift linear infinite;
+  will-change: transform;
+}
+
+.scene-cloud svg { display: block; width: 100%; height: auto; }
+.scene-cloud svg ellipse { fill: #ffffff; }
+
+@keyframes cloud-drift {
+  from { transform: translateX(-35vw); }
+  to   { transform: translateX(135vw); }
+}
+
+.scene-hills {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+}
+
+.scene-hills svg { display: block; width: 100%; height: auto; }
+
+.scene-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+/* Slow shimmer used for underwater / dreamy accents */
+.scene-shimmer {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background:
+    radial-gradient(60% 40% at 30% 20%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(50% 35% at 75% 45%, rgba(255, 255, 255, 0.22), transparent 70%);
+  animation: shimmer-sway 16s ease-in-out infinite alternate;
+}
+
+@keyframes shimmer-sway {
+  from { transform: translateX(-2%) scale(1); }
+  to   { transform: translateX(2%) scale(1.04); }
+}
+
 /* ============ Screens ============ */
 
 .screen {
@@ -78,6 +143,17 @@ button {
 .screen.is-active {
   display: flex;
   opacity: 1;
+  z-index: 2;
+}
+
+/* Fading out underneath the incoming screen during a seamless
+   game-to-game transition */
+.screen.is-leaving {
+  display: flex;
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.7s var(--ease-gentle);
+  pointer-events: none;
 }
 
 /* ============ Home ============ */
@@ -88,13 +164,25 @@ button {
   padding: max(24px, env(safe-area-inset-top)) 20px
            max(16px, env(safe-area-inset-bottom));
   background:
-    radial-gradient(120% 70% at 50% -10%, var(--cream-deep) 0%, transparent 60%),
-    var(--cream);
+    linear-gradient(180deg, #e8eef2 0%, #f4f1e6 46%, #faf6ef 75%, #f0e9d8 100%);
+}
+
+/* Soft dawn glow behind the title */
+#screen-home::before {
+  content: '';
+  position: absolute;
+  top: -18vh; left: 50%;
+  width: 90vw; height: 55vh;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%,
+    rgba(236, 217, 160, 0.55), transparent 70%);
+  pointer-events: none;
 }
 
 .home-header {
   text-align: center;
   padding-top: 12px;
+  position: relative;
 }
 
 .home-title {
@@ -120,30 +208,79 @@ button {
   align-content: center;
   flex: 1;
   padding: 16px 0;
+  position: relative;
 }
 
-@media (orientation: landscape) and (max-height: 480px) {
+/* Toddl is designed for landscape — one row of four cards */
+@media (orientation: landscape) {
   .home-grid {
-    grid-template-columns: repeat(4, minmax(110px, 160px));
-    max-width: 720px;
+    grid-template-columns: repeat(4, minmax(110px, 170px));
+    max-width: 780px;
   }
+}
+
+/* ============ Rotate hint (portrait) ============ */
+
+#rotate-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--cream);
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.rotate-phone {
+  width: 110px;
+  height: 110px;
+  animation: rotate-nudge 2.4s ease-in-out infinite;
+}
+
+@keyframes rotate-nudge {
+  0%, 55%, 100% { transform: rotate(0deg); }
+  25%, 35%      { transform: rotate(90deg); }
+}
+
+@media (orientation: portrait) {
+  #rotate-hint { display: flex; }
 }
 
 .game-card {
   aspect-ratio: 1 / 1.08;
   border-radius: var(--radius-big);
-  box-shadow: var(--card-shadow);
+  box-shadow:
+    0 2px 4px rgba(91, 84, 76, 0.06),
+    0 10px 26px rgba(91, 84, 76, 0.12),
+    inset 0 -3px 8px rgba(91, 84, 76, 0.06),
+    inset 0 2px 4px rgba(255, 255, 255, 0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 12px;
-  transition: transform 0.35s var(--ease-gentle);
+  transition: transform 0.35s var(--ease-spring);
+  animation: card-float 7s ease-in-out infinite;
+}
+
+.game-card:nth-child(1) { animation-delay: 0s; }
+.game-card:nth-child(2) { animation-delay: -1.8s; }
+.game-card:nth-child(3) { animation-delay: -3.5s; }
+.game-card:nth-child(4) { animation-delay: -5.2s; }
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
 }
 
 .game-card:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
+  animation-play-state: paused;
 }
 
 .game-card svg {
@@ -158,10 +295,10 @@ button {
   opacity: 0.85;
 }
 
-.card-bubbles { background: #dfe9f2; }
-.card-shapes  { background: #e5ecdb; }
-.card-colors  { background: #f4e4d7; }
-.card-garden  { background: #ece5f2; }
+.card-bubbles { background: linear-gradient(165deg, #e6eef6 0%, #d7e4ef 100%); }
+.card-shapes  { background: linear-gradient(165deg, #eaf0e0 0%, #dce6cd 100%); }
+.card-colors  { background: linear-gradient(165deg, #f7e9dc 0%, #f0dcc8 100%); }
+.card-garden  { background: linear-gradient(165deg, #efe9f5 0%, #e3d9ec 100%); }
 
 /* Home card icon fills */
 .icon-bubble-a { fill: rgba(168, 191, 212, 0.55); }
@@ -186,6 +323,7 @@ button {
   min-height: 44px;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .parents-button {
@@ -265,7 +403,7 @@ button {
   height: 24px;
   border-radius: 50%;
   background: #fff;
-  transition: transform 0.3s var(--ease-gentle);
+  transition: transform 0.3s var(--ease-spring);
 }
 
 .toggle[aria-checked="true"] .toggle-knob { transform: translateX(24px); }
@@ -318,7 +456,8 @@ button {
 
 #screen-bubbles .game-stage {
   background:
-    linear-gradient(180deg, #eef3f7 0%, #f6f4ec 70%, var(--cream) 100%);
+    linear-gradient(180deg,
+      #dfeaf3 0%, #e7eef2 34%, #f2f1e8 68%, #f6efdd 100%);
 }
 
 .bubble {
@@ -328,31 +467,98 @@ button {
   align-items: center;
   justify-content: center;
   will-change: transform;
-  /* Big forgiving touch target; visual circle is the element itself */
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
   background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0%,
-      rgba(255, 255, 255, 0.25) 22%, rgba(255, 255, 255, 0) 45%),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.10) 55%,
-      rgba(168, 191, 212, 0.35) 92%, rgba(127, 157, 184, 0.45) 100%);
-  box-shadow: inset 0 -4px 10px rgba(127, 157, 184, 0.18);
+    radial-gradient(circle at 33% 28%, rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.35) 18%, rgba(255, 255, 255, 0) 42%),
+    radial-gradient(circle at 68% 74%, rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.06) 52%,
+      rgba(197, 182, 212, 0.16) 74%, rgba(168, 191, 212, 0.34) 90%,
+      rgba(230, 184, 176, 0.30) 97%, rgba(127, 157, 184, 0.38) 100%);
+  box-shadow:
+    inset -6px -8px 16px rgba(127, 157, 184, 0.20),
+    inset 5px 7px 14px rgba(255, 255, 255, 0.45),
+    0 10px 22px rgba(127, 157, 184, 0.14);
+  animation: bubble-in 1.1s var(--ease-spring) backwards;
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; scale: 0.4; }
+  60%  { opacity: 1; }
+  to   { opacity: 1; scale: 1; }
+}
+
+/* Slowly turning iridescent film */
+.bubble::before {
+  content: '';
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    transparent 0%, rgba(230, 184, 176, 0.18) 12%,
+    transparent 26%, rgba(183, 201, 168, 0.16) 44%,
+    transparent 58%, rgba(197, 182, 212, 0.20) 74%,
+    transparent 88%, rgba(236, 217, 160, 0.14) 96%, transparent 100%);
+  animation: iridesce 16s linear infinite;
+}
+
+@keyframes iridesce {
+  to { transform: rotate(360deg); }
 }
 
 .bubble-content {
-  font-size: 46%;
-  /* font-size set relative to bubble via inline style; emoji sits inside */
   line-height: 1;
   pointer-events: none;
   opacity: 0.95;
+  animation: content-bob 5s ease-in-out infinite;
+}
+
+@keyframes content-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-4%) rotate(2deg); }
 }
 
 .bubble.is-popping {
-  animation: bubble-pop 0.45s var(--ease-gentle) forwards;
+  animation: bubble-pop 0.5s var(--ease-gentle) forwards;
 }
 
 @keyframes bubble-pop {
-  0%   { opacity: 1; }
-  40%  { transform: scale(1.15); opacity: 0.7; }
-  100% { transform: scale(1.35); opacity: 0; }
+  0%   { opacity: 1; scale: 1; }
+  35%  { scale: 1.18; opacity: 0.65; }
+  100% { scale: 1.42; opacity: 0; }
+}
+
+/* Expanding ripple ring left behind by a pop */
+.pop-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 18px rgba(168, 191, 212, 0.5),
+    inset 0 0 12px rgba(168, 191, 212, 0.35);
+  pointer-events: none;
+  animation: ring-out 0.9s var(--ease-gentle) forwards;
+}
+
+@keyframes ring-out {
+  from { transform: scale(0.45); opacity: 0.9; }
+  to   { transform: scale(1.5); opacity: 0; }
+}
+
+/* Tiny soap droplets scattering from a pop */
+.pop-droplet {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%,
+    rgba(255, 255, 255, 0.95), rgba(168, 191, 212, 0.55));
+  pointer-events: none;
+  animation: droplet-fly 0.85s var(--ease-gentle) forwards;
+}
+
+@keyframes droplet-fly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.95; }
+  55%  { transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.55 - 14px)) scale(0.85); opacity: 0.8; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.5); opacity: 0; }
 }
 
 .pop-reveal {
@@ -362,32 +568,47 @@ button {
   align-items: center;
   gap: 6px;
   pointer-events: none;
-  animation: reveal-float 2.2s var(--ease-gentle) forwards;
+  animation: reveal-float 2.4s var(--ease-gentle) forwards;
   z-index: 10;
 }
 
-.pop-reveal-emoji { line-height: 1; }
+.pop-reveal-emoji {
+  line-height: 1;
+  animation: reveal-spring 0.9s var(--ease-spring) backwards;
+}
+
+@keyframes reveal-spring {
+  from { transform: scale(0.2) rotate(-8deg); }
+  to   { transform: scale(1) rotate(0deg); }
+}
 
 .pop-reveal-word {
   font-weight: 700;
   color: var(--ink);
-  background: rgba(250, 246, 239, 0.9);
+  background: rgba(250, 246, 239, 0.92);
   padding: 4px 14px;
   border-radius: 999px;
   box-shadow: var(--card-shadow);
+  animation: word-rise 0.7s var(--ease-spring) 0.15s backwards;
+}
+
+@keyframes word-rise {
+  from { transform: translateY(10px) scale(0.8); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 @keyframes reveal-float {
-  0%   { opacity: 0; transform: translateY(6px) scale(0.9); }
-  15%  { opacity: 1; transform: translateY(0) scale(1); }
-  80%  { opacity: 1; transform: translateY(-14px) scale(1); }
-  100% { opacity: 0; transform: translateY(-22px) scale(1); }
+  0%   { opacity: 0; transform: translateY(6px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  80%  { opacity: 1; transform: translateY(-16px); }
+  100% { opacity: 0; transform: translateY(-26px); }
 }
 
 /* ============ Shapes ============ */
 
 #screen-shapes .game-stage {
-  background: var(--cream);
+  background:
+    linear-gradient(180deg, #f2efe4 0%, #f7f2e6 46%, #f1ead7 100%);
   display: flex;
   flex-direction: column;
 }
@@ -402,13 +623,30 @@ button {
   transform: translate(-50%, -50%);
 }
 
+.shape-slot svg { overflow: visible; }
+
 .shape-slot svg .slot-outline {
-  fill: var(--cream-deep);
+  fill: rgba(236, 229, 213, 0.75);
   stroke: #cfc5b4;
   stroke-width: 3;
   stroke-dasharray: 8 8;
   stroke-linejoin: round;
   stroke-linecap: round;
+  transition: stroke 0.3s var(--ease-gentle), fill 0.3s var(--ease-gentle);
+}
+
+.shape-slot.is-near svg .slot-outline {
+  stroke: var(--butter-deep);
+  fill: rgba(236, 217, 160, 0.35);
+}
+
+.shape-slot.is-near {
+  animation: slot-beckon 1.2s ease-in-out infinite;
+}
+
+@keyframes slot-beckon {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.05); }
 }
 
 .shape-slot.is-filled svg .slot-outline {
@@ -420,33 +658,57 @@ button {
   position: absolute;
   transform: translate(-50%, -50%);
   will-change: transform, left, top;
-  filter: drop-shadow(0 5px 8px rgba(91, 84, 76, 0.18));
 }
 
-.shape-piece.is-dragging {
-  filter: drop-shadow(0 12px 16px rgba(91, 84, 76, 0.22));
-  z-index: 20;
+.piece-inner {
+  animation: piece-bob 4.6s ease-in-out infinite;
+  filter: drop-shadow(0 6px 10px rgba(91, 84, 76, 0.20));
 }
 
-.shape-piece.is-placed {
+.shape-piece:nth-of-type(odd) .piece-inner { animation-delay: -2.3s; }
+
+@keyframes piece-bob {
+  0%, 100% { transform: translateY(0) rotate(-1.6deg); }
+  50%      { transform: translateY(-7px) rotate(1.6deg); }
+}
+
+.shape-piece.is-dragging .piece-inner {
+  animation: none;
+  transform: scale(1.12);
+  filter: drop-shadow(0 16px 22px rgba(91, 84, 76, 0.26));
+  transition: transform 0.25s var(--ease-spring);
+}
+
+.shape-piece.is-placed .piece-inner {
+  animation: piece-land 0.55s var(--ease-spring);
   filter: none;
-  pointer-events: none;
 }
+
+@keyframes piece-land {
+  0%   { transform: scale(1.12); }
+  45%  { transform: scale(0.92, 0.86); }
+  70%  { transform: scale(1.05, 1.03); }
+  100% { transform: scale(1); }
+}
+
+.shape-piece.is-placed { pointer-events: none; }
 
 .shape-piece.is-returning {
-  transition: left 0.55s var(--ease-gentle), top 0.55s var(--ease-gentle);
+  transition: left 0.6s var(--ease-spring), top 0.6s var(--ease-spring);
 }
 
 .shape-piece.is-snapping {
-  transition: left 0.3s var(--ease-gentle), top 0.3s var(--ease-gentle);
+  transition: left 0.28s var(--ease-gentle), top 0.28s var(--ease-gentle);
 }
 
+.shape-piece svg { overflow: visible; }
 .shape-piece svg .piece-fill { stroke-linejoin: round; stroke-linecap: round; }
 
 /* ============ Colors ============ */
 
 #screen-colors .game-stage {
-  background: var(--cream);
+  background:
+    linear-gradient(180deg, #f5eee2 0%, #f8f2e6 50%, #efe5cf 100%);
 }
 
 .color-bowl {
@@ -455,6 +717,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  transform-origin: 50% 85%;
+}
+
+.color-bowl.is-catching {
+  animation: bowl-wobble 0.7s var(--ease-spring);
+}
+
+@keyframes bowl-wobble {
+  0%   { transform: translateX(-50%) rotate(0deg) scale(1); }
+  30%  { transform: translateX(-50%) rotate(-2.5deg) scale(1.04, 0.97); }
+  60%  { transform: translateX(-50%) rotate(1.8deg) scale(0.98, 1.02); }
+  100% { transform: translateX(-50%) rotate(0deg) scale(1); }
 }
 
 .color-bowl svg { width: 100%; height: auto; overflow: visible; }
@@ -463,23 +737,37 @@ button {
   position: absolute;
   transform: translate(-50%, -50%);
   will-change: left, top;
-  filter: drop-shadow(0 4px 7px rgba(91, 84, 76, 0.16));
 }
 
-.color-item.is-dragging {
-  filter: drop-shadow(0 10px 14px rgba(91, 84, 76, 0.22));
-  z-index: 20;
+.ball-inner {
+  animation: ball-bob 4s ease-in-out infinite;
+  filter: drop-shadow(0 5px 8px rgba(91, 84, 76, 0.18));
+}
+
+.color-item:nth-of-type(odd) .ball-inner { animation-delay: -2s; }
+.color-item:nth-of-type(3n) .ball-inner { animation-delay: -1.2s; }
+
+@keyframes ball-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.color-item.is-dragging .ball-inner {
+  animation: none;
+  transform: scale(1.12);
+  filter: drop-shadow(0 14px 18px rgba(91, 84, 76, 0.24));
+  transition: transform 0.25s var(--ease-spring);
 }
 
 .color-item.is-returning {
-  transition: left 0.55s var(--ease-gentle), top 0.55s var(--ease-gentle);
+  transition: left 0.6s var(--ease-spring), top 0.6s var(--ease-spring);
 }
 
 .color-item.is-sinking {
-  transition: left 0.35s var(--ease-gentle), top 0.35s var(--ease-gentle),
-    opacity 0.4s var(--ease-gentle) 0.15s, transform 0.4s var(--ease-gentle);
+  transition: left 0.32s var(--ease-gentle), top 0.32s var(--ease-gentle),
+    opacity 0.4s var(--ease-gentle) 0.16s, transform 0.45s var(--ease-gentle);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.55);
+  transform: translate(-50%, -50%) scale(0.5);
   pointer-events: none;
 }
 
@@ -487,15 +775,8 @@ button {
 
 #screen-garden .game-stage {
   background:
-    linear-gradient(180deg, #f2f0e6 0%, var(--cream) 55%, #ece5d2 100%);
-}
-
-.garden-ground {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 26%;
-  background: linear-gradient(180deg, #dcd2ba 0%, #d0c4a8 100%);
-  border-radius: 40px 40px 0 0;
+    linear-gradient(180deg,
+      #f6e8d8 0%, #f6eedd 30%, #f3f0e2 58%, #e9e9d3 100%);
 }
 
 .garden-mound {
@@ -508,13 +789,33 @@ button {
 
 .garden-mound svg { width: 100%; height: 100%; overflow: visible; }
 
+/* Grow slowly out of the soil, then sway forever in the breeze */
+.garden-mound .flower {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.garden-mound .flower-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.garden-mound.is-bloomed .flower-sway {
+  animation: flower-sway 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes flower-sway {
+  from { transform: rotate(-2.4deg); }
+  to   { transform: rotate(2.4deg); }
+}
+
 .count-label {
   position: absolute;
   transform: translate(-50%, -50%);
   font-size: clamp(2rem, 9vw, 3rem);
   font-weight: 700;
   color: var(--ink);
-  background: rgba(250, 246, 239, 0.9);
+  background: rgba(250, 246, 239, 0.92);
   width: 1.9em;
   height: 1.9em;
   border-radius: 50%;
@@ -523,8 +824,16 @@ button {
   justify-content: center;
   box-shadow: var(--card-shadow);
   pointer-events: none;
-  animation: reveal-float 1.8s var(--ease-gentle) forwards;
+  animation: count-spring 1.9s var(--ease-gentle) forwards;
   z-index: 10;
+}
+
+@keyframes count-spring {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  14%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  24%  { transform: translate(-50%, -50%) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, -46%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(1); }
 }
 
 .butterfly {
@@ -534,21 +843,32 @@ button {
   will-change: transform;
 }
 
+.butterfly-inner {
+  display: inline-block;
+  animation: flutter 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes flutter {
+  from { transform: scaleX(1) rotate(-4deg); }
+  to   { transform: scaleX(0.78) rotate(4deg); }
+}
+
 /* Gentle celebration stars, shared by games */
 .calm-star {
   position: absolute;
   pointer-events: none;
-  animation: star-drift 2.4s var(--ease-gentle) forwards;
+  animation: star-drift 2.6s var(--ease-gentle) forwards;
   z-index: 30;
 }
 
-.calm-star svg { display: block; }
+.calm-star svg { display: block; overflow: visible; }
 .calm-star svg path { fill: var(--butter-deep); opacity: 0.75; }
 
 @keyframes star-drift {
-  0%   { opacity: 0; transform: translateY(0) scale(0.6) rotate(0deg); }
-  20%  { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-46px) scale(1) rotate(24deg); }
+  0%   { opacity: 0; transform: translateY(6px) scale(0.5) rotate(-8deg); }
+  18%  { opacity: 1; transform: translateY(-4px) scale(1.05) rotate(0deg); }
+  30%  { transform: translateY(-8px) scale(1) rotate(4deg); }
+  100% { opacity: 0; transform: translateY(-52px) scale(0.9) rotate(26deg); }
 }
 
 /* Reduced-motion users get near-static screens */

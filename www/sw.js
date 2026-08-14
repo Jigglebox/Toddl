@@ -1,7 +1,7 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v3';
+var CACHE = 'toddl-v4';
 var WORDS = ['dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
   'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
   'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
@@ -11,6 +11,7 @@ var ASSETS = [
   'index.html',
   'css/style.css',
   'js/audio.js',
+  'js/scenery.js',
   'js/bubbles.js',
   'js/shapes.js',
   'js/colors.js',

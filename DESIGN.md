@@ -20,11 +20,14 @@ every single thing that happens on screen — not from spectacle.
    rapid color changes.
 4. **Quiet audio.** All sound effects are synthesized soft sine/triangle
    tones on a pentatonic scale (so overlapping notes always harmonize),
-   played at low gain. No music loop. Every spoken word ships as a
-   pre-recorded natural voice clip (calm neural TTS, loudness-normalized,
-   slightly slowed) so the voice is warm and identical on every device —
-   system speech synthesis is only a fallback, with the most natural
-   available voice auto-selected.
+   played at low gain. Instead of a looping music track, a generative
+   music-box lullaby plays single soft bell notes that wander the
+   pentatonic scale every few seconds — never a beat, never a repeat,
+   always consonant (toggleable in the grown-ups panel). Every spoken
+   word ships as a pre-recorded natural voice clip (calm neural TTS,
+   loudness-normalized, slightly slowed) so the voice is warm and
+   identical on every device — system speech synthesis is only a
+   fallback, with the most natural available voice auto-selected.
 5. **No fail states, ever.** A shape dropped in the wrong place drifts calmly
    back — a soft downward tone, never a buzzer. Montessori materials are
    self-correcting; the material itself shows the answer.
@@ -34,6 +37,21 @@ every single thing that happens on screen — not from spectacle.
    game isolates a single property — object names, shape, color, or number.
 8. **Big and forgiving.** Minimum ~96 px touch targets, generous snap radii
    (~55% of piece size), whole-element hit areas.
+9. **A living world, softly.** Every scene has layered scenery — a
+   breathing sun-glow, clouds that take minutes to cross the sky, rolling
+   hills — and every touchable thing idles with a slow bob or sway. Alive
+   enough to be mesmerizing, never fast enough to distract from the
+   child's own actions.
+10. **Play flows by itself.** When an activity reaches a natural resting
+    point (seven bubbles popped, two puzzles done, the garden fully
+    bloomed), the next activity gently crossfades in — bubbles → shapes →
+    colors → garden → bubbles. A toddler playing alone keeps playing;
+    no menu, no parent needed. The home screen still allows jumping
+    straight to any activity.
+11. **Landscape, on a lap.** Toddlers don't hold phones; they set them
+    down. The native apps lock to landscape, the PWA manifest requests
+    it, and in a portrait browser a calm "turn me sideways" screen shows
+    instead of a broken layout.
 
 ## The four activities
 
