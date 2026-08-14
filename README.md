@@ -55,6 +55,15 @@ Google Play Families policy steps).
 Press and **hold** the "grown-ups" button on the home screen for two seconds
 to open settings (toggle gentle sounds and spoken words).
 
+## Imagery credit
+
+The galaxy night scene uses real James Webb Space Telescope photographs —
+Carina Nebula ("Cosmic Cliffs"), Tarantula Nebula, Stephan's Quintet, and
+the Southern Ring Nebula — courtesy of NASA/ESA/CSA/STScI (public domain),
+color-graded for the app. Sourced via the
+[WebbCompare](https://github.com/JohnEdChristensen/WebbCompare) mirror of
+the official STScI releases.
+
 ## Tech
 
 Plain HTML/CSS/JS. All art is inline SVG, all audio is WebAudio-synthesized

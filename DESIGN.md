@@ -66,14 +66,17 @@ ripple and droplets; the object springs free with its written and spoken
 name.
 
 **The moon secret:** popping the moon bubble opens a full **360° window
-into space**. The night sky is a panoramic skybox painted onto a canvas in
-saturated, additive color over true black — cinematic deep space, not a
-pastel painting — holding four distinct vistas: the fiery ring nebula
-(turbulent magenta/orange/gold gas glowing from within around a dark void,
-with a blazing cross-flare star at its heart), towering magenta-purple
-pillars crowned with newborn stars, a cyan veil wrapped around a burning
-star cluster, and a distant tilted spiral galaxy — plus a milky band,
-~900 painted stars, twinkling overlay stars, and shooting stars.
+into space** built from real James Webb Space Telescope photography
+(NASA/ESA/CSA/STScI, public domain). Four genuine deep-space vistas hang
+in the panorama: the Cosmic Cliffs of the Carina Nebula, the Tarantula
+Nebula star nursery, Stephan's Quintet of galaxies, and the Southern Ring
+Nebula — each color-graded to a violet/magenta base (saturation lift plus
+a luminance-preserving purple tint, so stars stay white-hot while the gas
+goes electric purple), with fades to pure black baked into the edges so
+they dissolve seamlessly into a painted field of ~900 stars, a milky band,
+twinkling overlay stars, and shooting stars. Photo blacks are
+screen-blended away, so the images float in space rather than sitting in
+rectangles.
 
 **Turning the phone actually looks around the sphere.** Device orientation
 is converted to a true view direction (rotation matrix → azimuth +

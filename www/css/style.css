@@ -686,6 +686,18 @@ button {
   transform: translate(-50%, -50%) rotate(90deg);
 }
 
+/* Real JWST photographs as the skybox vistas. screen-blend turns
+   their black space transparent over the painted starfield. */
+.gx-photo {
+  position: absolute;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1.8s var(--ease-gentle);
+  pointer-events: none;
+}
+
+.gx-photo.is-ready { opacity: 1; }
+
 .gx-star {
   position: absolute;
   border-radius: 50%;

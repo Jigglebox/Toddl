@@ -306,133 +306,6 @@
          [1, 'rgba(0,0,0,0)']]);
     }
 
-    // ===== Vista 1 (12.5%): the fiery ring around the void =====
-    var hx = W * 0.125, hy = H * 0.46;
-    var ringR = H * 0.30;
-    // Dense overlapping gas: dozens of small clouds stacking additively
-    // read as continuous turbulent nebula, not separate blobs.
-    var firePalette = [
-      'rgba(255, 120, 30, A)', 'rgba(255, 40, 60, A)',
-      'rgba(255, 200, 80, A)', 'rgba(255, 50, 160, A)',
-      'rgba(230, 60, 90, A)', 'rgba(200, 60, 200, A)'
-    ];
-    // soft luminous bed under the gas so the ring glows from within
-    paintCloud(ctx, hx, hy, ringR * 1.7, ringR * 1.25, 0,
-      [[0, 'rgba(0,0,0,0)'], [0.45, 'rgba(255, 90, 60, 0.10)'],
-       [0.72, 'rgba(255, 140, 60, 0.16)'], [1, 'rgba(0,0,0,0)']]);
-    for (i = 0; i < 110; i++) {
-      var a = Math.random() * Math.PI * 2;
-      var rr = ringR * (0.72 + Math.random() * 0.55);
-      var col = firePalette[Math.floor(Math.random() * firePalette.length)]
-        .replace('A', (0.22 + Math.random() * 0.26).toFixed(2));
-      paintCloud(ctx,
-        hx + Math.cos(a) * rr + (Math.random() - 0.5) * 60,
-        hy + Math.sin(a) * rr * 0.8 + (Math.random() - 0.5) * 40,
-        60 + Math.random() * 110, 30 + Math.random() * 40,
-        a + Math.PI / 2 + (Math.random() - 0.5) * 0.6,
-        [[0, col], [1, 'rgba(0,0,0,0)']]);
-    }
-    // white-hot inner rim: fine bright wisps hugging the void
-    for (i = 0; i < 40; i++) {
-      a = Math.random() * Math.PI * 2;
-      rr = ringR * (0.5 + Math.random() * 0.14);
-      paintCloud(ctx,
-        hx + Math.cos(a) * rr, hy + Math.sin(a) * rr * 0.8,
-        36 + Math.random() * 40, 14 + Math.random() * 14,
-        a + Math.PI / 2 + (Math.random() - 0.5) * 0.4,
-        [[0, 'rgba(255, 226, 170, ' + (0.2 + Math.random() * 0.22).toFixed(2) + ')'],
-         [1, 'rgba(0,0,0,0)']]);
-    }
-    // the dark void inside the ring
-    ctx.globalCompositeOperation = 'source-over';
-    paintCloud(ctx, hx, hy, ringR * 0.62, ringR * 0.52, 0,
-      [[0, 'rgba(1, 0, 5, 0.94)'], [0.7, 'rgba(1, 0, 5, 0.55)'], [1, 'rgba(0,0,0,0)']]);
-    ctx.globalCompositeOperation = 'lighter';
-    // blazing heart
-    paintStar(ctx, hx, hy, 120, 'rgba(255, 170, 90, 0.55)');
-    paintStar(ctx, hx, hy, 34, 'rgba(255, 235, 200, 0.95)');
-    paintStar(ctx, hx, hy, 10, 'rgba(255, 255, 250, 1)');
-    paintFlare(ctx, hx, hy, 300, 0.7);
-
-    // ===== Vista 2 (37.5%): towering magenta-purple pillars =====
-    var px = W * 0.375, py = H * 0.52;
-    paintCloud(ctx, px, py, 520, 360, 0,
-      [[0, 'rgba(110, 30, 200, 0.30)'], [1, 'rgba(0,0,0,0)']]);
-    var pillars = [
-      { dx: -170, h: 400, w: 95,  c1: 'rgba(200, 50, 255, 0.55)', c2: 'rgba(110, 20, 210, 0.25)' },
-      { dx: 30,   h: 520, w: 120, c1: 'rgba(255, 50, 200, 0.60)', c2: 'rgba(150, 30, 220, 0.28)' },
-      { dx: 220,  h: 340, w: 85,  c1: 'rgba(170, 60, 255, 0.50)', c2: 'rgba(90, 30, 190, 0.24)' }
-    ];
-    for (i = 0; i < pillars.length; i++) {
-      var p = pillars[i];
-      // dense stacked wisps build a towering turbulent column
-      for (var s = 0; s < 16; s++) {
-        var f = s / 15;
-        paintCloud(ctx, px + p.dx + (Math.random() - 0.5) * p.w * 0.7,
-          py + p.h * 0.35 - p.h * f + (Math.random() - 0.5) * 30,
-          p.w * (0.75 - f * 0.3) * (0.7 + Math.random() * 0.6),
-          p.w * (0.5 - f * 0.15) * (0.7 + Math.random() * 0.6),
-          (Math.random() - 0.5) * 0.8,
-          [[0, p.c1.replace(/[\d.]+\)$/, (0.18 + Math.random() * 0.2).toFixed(2) + ')')],
-           [0.6, p.c2], [1, 'rgba(0,0,0,0)']]);
-      }
-      // glowing crown where stars are being born
-      paintStar(ctx, px + p.dx, py + p.h * 0.35 - p.h, 60, 'rgba(255, 220, 255, 0.5)');
-      paintStar(ctx, px + p.dx, py + p.h * 0.35 - p.h, 16, 'rgba(255, 245, 255, 0.95)');
-      // cyan rim light on one flank
-      paintCloud(ctx, px + p.dx + p.w * 0.7, py + p.h * 0.1, 34, p.h * 0.32, 0.1,
-        [[0, 'rgba(0, 220, 255, 0.30)'], [1, 'rgba(0,0,0,0)']]);
-    }
-
-    // ===== Vista 3 (62.5%): cyan veil + blazing star cluster =====
-    var vx = W * 0.625, vy = H * 0.44;
-    for (i = 0; i < 6; i++) {
-      paintCloud(ctx, vx + (Math.random() - 0.5) * 700, vy + (Math.random() - 0.5) * 380,
-        380 + Math.random() * 220, 90 + Math.random() * 70,
-        (Math.random() - 0.5) * 0.5,
-        [[0, 'rgba(0, 200, 255, 0.22)'], [0.6, 'rgba(40, 120, 230, 0.12)'],
-         [1, 'rgba(0,0,0,0)']]);
-    }
-    paintCloud(ctx, vx + 180, vy - 40, 300, 160, -0.3,
-      [[0, 'rgba(60, 255, 220, 0.16)'], [1, 'rgba(0,0,0,0)']]);
-    // the cluster: dozens of tight diamonds around a burning core
-    paintStar(ctx, vx + 60, vy + 20, 190, 'rgba(140, 230, 255, 0.30)');
-    for (i = 0; i < 70; i++) {
-      var ca = Math.random() * Math.PI * 2;
-      var cr = Math.pow(Math.random(), 0.6) * 190;
-      paintStar(ctx, vx + 60 + Math.cos(ca) * cr, vy + 20 + Math.sin(ca) * cr * 0.75,
-        1.5 + Math.random() * 3.5,
-        Math.random() < 0.7 ? 'rgba(230, 250, 255, 0.95)' : 'rgba(170, 220, 255, 0.9)');
-    }
-    paintStar(ctx, vx + 60, vy + 20, 26, 'rgba(240, 255, 255, 0.95)');
-    paintFlare(ctx, vx + 60, vy + 20, 200, 0.55);
-
-    // ===== Vista 4 (87.5%): a distant spiral galaxy, tilted =====
-    var gx = W * 0.875, gy = H * 0.42;
-    ctx.save();
-    ctx.translate(gx, gy);
-    ctx.rotate(-0.5);
-    ctx.scale(1, 0.42);
-    paintStar(ctx, 0, 0, 200, 'rgba(255, 220, 180, 0.35)');
-    paintStar(ctx, 0, 0, 60, 'rgba(255, 240, 220, 0.8)');
-    for (var arm = 0; arm < 2; arm++) {
-      for (i = 0; i < 26; i++) {
-        var th = i * 0.24 + arm * Math.PI;
-        var rad = 40 + i * 13;
-        var cc = i % 3 === 0 ? 'rgba(255, 150, 200, 0.35)'
-               : (i % 3 === 1 ? 'rgba(160, 190, 255, 0.38)' : 'rgba(220, 230, 255, 0.35)');
-        paintCloud(ctx, Math.cos(th) * rad, Math.sin(th) * rad,
-          46 + i * 2.2, 26 + i * 1.1, th + Math.PI / 2,
-          [[0, cc], [1, 'rgba(0,0,0,0)']]);
-      }
-    }
-    ctx.restore();
-    // sparse deep field around it
-    for (i = 0; i < 40; i++) {
-      paintStar(ctx, gx + (Math.random() - 0.5) * 900, gy + (Math.random() - 0.5) * 700,
-        0.8 + Math.random() * 1.6, 'rgba(220, 230, 255, 0.7)');
-    }
-
     // ===== The whole sphere: stars everywhere =====
     for (i = 0; i < 900; i++) {
       var sx = Math.random() * W, sy = Math.random() * H;
@@ -503,14 +376,23 @@
     win.appendChild(canvas);
     win.appendChild(canvasB);
 
-    // Living overlays that pan with the sky: the breathing heart of
-    // the ring vista, the moon, and twinkling stars
+    // Real James Webb Space Telescope photographs are the vistas.
+    // screen-blend makes their black space transparent, so the painted
+    // starfield shines through and no rectangle edges exist.
+    var photos = [
+      { file: 'carina.jpg',    at: 0.125, h: 1.02, aspect: 2589 / 1500 },
+      { file: 'tarantula.jpg', at: 0.375, h: 1.06, aspect: 2593 / 1500 },
+      { file: 'quintet.jpg',   at: 0.625, h: 0.86, aspect: 1461 / 1400 },
+      { file: 'ring.jpg',      at: 0.875, h: 0.78, aspect: 1396 / 1300 }
+    ];
+    for (var pi = 0; pi < photos.length; pi++) {
+      placePhoto(win, photos[pi], 0);
+      placePhoto(win, photos[pi], pano.dispW);   // copy for the wrap
+    }
+
     var homeX = pano.dispW * 0.125;
-    var homeY = pano.dispH * 0.46;
-    addOverlay(win, 'gx-sunglow', homeX, homeY);
-    addOverlay(win, 'gx-sun', homeX, homeY);
     var moon = addOverlay(win, 'gx-moon', homeX + rect.width * 0.34,
-      pano.dispH * 0.18);
+      pano.dispH * 0.14);
     moon.textContent = '\u{1F319}';
 
     for (var i = 0; i < 30; i++) {
@@ -542,6 +424,25 @@
     window.setTimeout(spawnComet, 2200);
 
     startParallax();
+  }
+
+  function placePhoto(win, spec, shift) {
+    var h = pano.dispH * spec.h;
+    var w = h * spec.aspect;
+    var img = document.createElement('img');
+    img.className = 'gx-photo';
+    img.src = 'img/galaxy/' + spec.file;
+    img.decoding = 'async';
+    img.style.height = h + 'px';
+    img.style.width = w + 'px';
+    img.style.left = (pano.dispW * spec.at - w / 2 + shift) + 'px';
+    img.style.top = ((pano.dispH - h) / 2) + 'px';
+    if (img.complete) {
+      img.classList.add('is-ready');
+    } else {
+      img.onload = function () { img.classList.add('is-ready'); };
+    }
+    win.appendChild(img);
   }
 
   function addOverlay(win, className, x, y) {
@@ -754,6 +655,9 @@
     bubbles = [];
     lastTime = 0;
     popCount = 0;
+    ['carina', 'tarantula', 'quintet', 'ring'].forEach(function (name) {
+      new Image().src = 'img/galaxy/' + name + '.jpg';
+    });
     spawnBubble(0.12);
     spawnBubble(0.32);
     spawnBubble(0.52);
