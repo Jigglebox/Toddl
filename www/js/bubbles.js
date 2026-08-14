@@ -267,6 +267,55 @@
     return el;
   }
 
+  // A tileable field of glowing dust motes, drawn once and tiled.
+  // Dots near the tile's left edge are duplicated a tile-width to the
+  // right so the wrap is perfectly seamless. The nearest fields get a
+  // CSS blur — out-of-focus bokeh dust floating right by the glass.
+  function makeDustLayer(f, count, minR, maxR, blurPx, H, screenW) {
+    var tile = document.createElement('canvas');
+    tile.width = 1024;
+    tile.height = 1024;
+    var ctx = tile.getContext('2d');
+    for (var i = 0; i < count; i++) {
+      var x = Math.random() * 1024;
+      var y = Math.random() * 1024;
+      var r = minR + Math.pow(Math.random(), 1.6) * (maxR - minR);
+      var pick = Math.random();
+      var col = pick < 0.55 ? '255, 255, 255'
+              : pick < 0.75 ? '190, 216, 255'
+              : pick < 0.92 ? '255, 220, 180'
+              : '235, 180, 255';
+      var alpha = 0.35 + Math.random() * 0.5;
+      var positions = [[x, y]];
+      if (x < maxR * 2) positions.push([x + 1024, y]);   // seamless wrap
+      for (var p = 0; p < positions.length; p++) {
+        var g = ctx.createRadialGradient(
+          positions[p][0], positions[p][1], 0,
+          positions[p][0], positions[p][1], r);
+        g.addColorStop(0, 'rgba(' + col + ',' + alpha + ')');
+        g.addColorStop(0.6, 'rgba(' + col + ',' + (alpha * 0.35) + ')');
+        g.addColorStop(1, 'rgba(' + col + ',0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(positions[p][0], positions[p][1], r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    var tileCss = Math.round(H);          // square tile at full height
+    var layerEl = makeLayer(f, tileCss);
+    if (blurPx) layerEl.style.filter = 'blur(' + blurPx + 'px)';
+    var url = tile.toDataURL('image/png');
+    var n = Math.ceil((tileCss + screenW) / tileCss) + 1;
+    for (var ti = 0; ti < n; ti++) {
+      var img = document.createElement('img');
+      img.src = url;
+      img.style.cssText = 'position:absolute;top:0;left:' + (ti * tileCss) +
+        'px;width:' + tileCss + 'px;height:' + tileCss + 'px;';
+      layerEl.appendChild(img);
+    }
+    return layerEl;
+  }
+
   function addImg(parent, file, x, y, w, opts) {
     opts = opts || {};
     var img = document.createElement('img');
@@ -402,6 +451,12 @@
       placeNear(nears[ni], 0);
       placeNear(nears[ni], W);
     }
+
+    // --- Dust fields: star motes closer than everything, at three
+    // depths; the closest is soft bokeh drifting right by the window ---
+    makeDustLayer(1.4, 70, 0.8, 2.2, 0, H, rect.width);
+    makeDustLayer(1.65, 50, 1.2, 3.2, 1, H, rect.width);
+    makeDustLayer(1.95, 32, 2.2, 5.5, 2.5, H, rect.width);
 
     for (var li = 0; li < pano.layers.length; li++) {
       galaxyEl.appendChild(pano.layers[li].el);
@@ -551,14 +606,22 @@
 
     // Per-layer parallax: each depth pans at its own rate; every
     // layer's content repeats with period dispW, so wrap per layer.
+    // Slow travel: each depth breathes in and out on a 46-second
+    // cycle, near layers more than far — a gentle dolly through the
+    // dust rather than a picture on a wall.
+    var travel = Math.sin(t * 0.000137);
+    var vw = pano.dispW / 4;                 // one screen width
     for (var i = 0; i < pano.layers.length; i++) {
       var L = pano.layers[i];
       var period = L.period || pano.dispW;
       var lx = (pano.x * L.f) % period;
       if (lx < 0) lx += period;
       var ly = pano.y * L.f + (pano.extraY * (1 - L.f)) / 2;
+      var s = 1 + travel * 0.05 * Math.max(0, L.f - 0.6);
+      L.el.style.transformOrigin =
+        (lx + vw / 2) + 'px ' + (ly + pano.dispH / 5.2) + 'px';
       L.el.style.transform =
-        'translate3d(' + (-lx) + 'px,' + (-ly) + 'px,0)';
+        'translate3d(' + (-lx) + 'px,' + (-ly) + 'px,0) scale(' + s + ')';
     }
   }
 

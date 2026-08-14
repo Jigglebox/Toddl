@@ -88,12 +88,16 @@ twinkling overlay stars, and shooting stars. Photo blacks are
 screen-blended away, so the images float in space rather than sitting in
 rectangles.
 
-**Real 3D depth.** The sky is four parallax layers — Webb's First Deep
+**Real 3D depth.** The sky is seven parallax layers — Webb's First Deep
 Field (thousands of real galaxies) as the slow-crawling backdrop, a vast
 blurred nebula haze, the main nebula band, and crisp near wisps that sweep
-past fastest with a whisper of depth-of-field blur. Every layer pans at
-its own rate as the view moves, so the nebula genuinely pops out of the
-screen. All of it is photographic — nothing in the night sky is
+past fastest with a whisper of depth-of-field blur — plus three fields
+of glowing star dust closer than everything (parallax rates 1.4/1.65/
+1.95), the nearest rendered as soft out-of-focus bokeh motes drifting
+right by the glass. Every layer pans at its own rate as the view moves,
+and the whole stack slowly breathes on a 46-second cycle (near layers
+zooming more than far) so it feels like gently traveling through the
+dust, not looking at a picture on a wall. All of it is photographic — nothing in the night sky is
 runtime-generated except twinkle sparkles and shooting stars.
 
 **Turning the phone actually looks around the sphere.** Device orientation
