@@ -683,14 +683,17 @@ button {
   animation: galaxy-in 2.6s var(--ease-gentle) forwards;
 }
 
-/* The panning 360-degree window: two copies of the painted sky sit
-   side by side inside; translating it looks around the sphere */
-.gx-window {
+/* Parallax depth layers: each pans at its own rate as the view
+   moves, so the sky pops out in real 3D */
+.gx-depth {
   position: absolute;
   left: 0;
   top: 0;
   will-change: transform;
 }
+
+/* Nearest-layer wisps get a whisper of blur — depth of field */
+.gx-near { filter: blur(1.2px); }
 
 @keyframes galaxy-in {
   to { opacity: 1; }
@@ -754,7 +757,6 @@ button {
    their black space transparent over the painted starfield. */
 .gx-photo {
   position: absolute;
-  mix-blend-mode: screen;
   opacity: 0;
   transition: opacity 1.8s var(--ease-gentle);
   pointer-events: none;

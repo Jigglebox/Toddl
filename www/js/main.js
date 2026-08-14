@@ -182,9 +182,91 @@
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
   document.addEventListener('dblclick', function (e) { e.preventDefault(); });
 
-  // First interaction anywhere unlocks audio (mobile autoplay policy).
+  /* ---------- Device motion service ----------
+     One app-wide gyroscope reader. iOS only grants motion access when
+     requested during a clean user gesture, so we ask on the very first
+     tap (and again on later taps until granted). The galaxy reads the
+     accumulated view direction from here every frame. */
+
+  window.ToddlMotion = (function () {
+    var accAz = 0;          // continuous azimuth, radians (multi-turn safe)
+    var elev = 0;           // elevation relative to how the phone is held
+    var lastAz = null;
+    var baseEl = null;
+    var active = false;     // true once real sensor events arrive
+    var attached = false;
+    var granted = false;
+
+    function wrapPi(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    // W3C deviceorientation angles (Z-X'-Y'' intrinsic) → the direction
+    // the user is looking (out of the back of the screen).
+    function viewDirection(alpha, beta, gamma) {
+      var d = Math.PI / 180;
+      var cX = Math.cos(beta * d), sX = Math.sin(beta * d);
+      var cY = Math.cos(gamma * d), sY = Math.sin(gamma * d);
+      var cZ = Math.cos(alpha * d), sZ = Math.sin(alpha * d);
+      var zx = cY * sZ * sX + cZ * sY;
+      var zy = sZ * sY - cZ * cY * sX;
+      var zz = cX * cY;
+      return {
+        az: Math.atan2(-zx, -zy),
+        el: Math.asin(Math.max(-1, Math.min(1, -zz)))
+      };
+    }
+
+    function handle(e) {
+      if (e.beta == null || e.gamma == null) return;
+      var v = viewDirection(e.alpha || 0, e.beta, e.gamma);
+      if (lastAz === null) {
+        lastAz = v.az;
+        baseEl = v.el;
+        return;
+      }
+      accAz += wrapPi(v.az - lastAz);
+      lastAz = v.az;
+      elev = v.el - baseEl;
+      active = true;
+    }
+
+    function attach() {
+      if (attached) return;
+      attached = true;
+      window.addEventListener('deviceorientation', handle);
+    }
+
+    function request() {
+      if (granted) return;
+      try {
+        if (typeof DeviceOrientationEvent !== 'undefined' &&
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission().then(function (state) {
+            if (state === 'granted') { granted = true; attach(); }
+          }).catch(function () { /* keep drag fallback */ });
+        } else {
+          granted = true;
+          attach();
+        }
+      } catch (e) { /* keep drag fallback */ }
+    }
+
+    return {
+      request: request,
+      get: function () {
+        return { azimuth: accAz, elevation: elev, active: active };
+      }
+    };
+  })();
+
+  // First interaction anywhere unlocks audio (mobile autoplay policy)
+  // and is the cleanest possible gesture to request motion access.
   document.addEventListener('pointerdown', function unlockOnce() {
     ToddlAudio.unlock();
+    window.ToddlMotion.request();
     document.removeEventListener('pointerdown', unlockOnce);
   });
 

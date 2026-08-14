@@ -232,137 +232,59 @@
   }
 
   /* ---------- Galaxy night: a 360° window into space ----------
-     Popping the moon bubble opens a full panoramic skybox painted
-     onto a canvas: the fiery ring nebula is only one of four vistas
-     — turn the phone and towering magenta pillars, a cyan veil with
-     a blazing star cluster, and a distant spiral galaxy wheel past.
-     Device orientation is converted to a true view direction
-     (azimuth + elevation), so the sky pans exactly opposite the
-     phone's motion and wraps seamlessly through 360°. Saturated
-     color composited additively over true black — deep space, not
-     a pastel painting. */
-
-  var PANO_W = 4096;          // canvas texture size
-  var PANO_H = 1408;
+     Popping the moon bubble opens a spherical night sky built from
+     real JWST photography, split across four depth layers that pan
+     at different rates as the view moves — far stars crawl, the
+     nebula band glides, near wisps sweep past — so the sky pops out
+     in real parallax 3D. The gyroscope (via ToddlMotion) drives the
+     view: turn the phone to look anywhere — full 360° around and
+     ~±60° up and down into more nebula above and below. */
 
   var pano = {
-    windowEl: null,           // the panning wrapper
-    dispW: 0,                 // displayed strip width (one full 360°)
-    dispH: 0,
-    extraY: 0,                // vertical pan range in px
+    dispW: 0,                 // one full 360° in display px
+    dispH: 0,                 // full vertical field (~2.6 screens)
+    extraY: 0,
     pxPerRad: 0,
     pxPerRadY: 0,
-    // continuous (unwrapped) pan targets and smoothed values
-    targetX: 0, targetY: 0,
-    x: 0, y: 0,
-    lastAz: null,
-    hasSensor: false,
+    layers: [],               // { el, f } — f is the parallax rate
+    midLayer: null,
+    // smoothed / target master pan
+    x: 0, y: 0, targetX: 0, targetY: 0,
+    azBase: null,             // gyro azimuth when the galaxy opened
+    manualAz: 0, manualEl: 0, // drag-to-look state (no-gyro fallback)
     dragging: false,
     dragLastX: 0, dragLastY: 0,
-    lastInputAt: 0
+    lastInputAt: 0,
+    sensorLive: false
   };
 
-  /* ----- painting helpers (additive over black) ----- */
+  /* ----- building the layered sky ----- */
 
-  function paintCloud(ctx, x, y, rx, ry, rot, stops) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rot);
-    ctx.scale(rx, ry);
-    var g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-    for (var i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, 0, 1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+  function makeLayer(f, period) {
+    var el = document.createElement('div');
+    el.className = 'gx-depth';
+    pano.layers.push({ el: el, f: f, period: period });
+    return el;
   }
 
-  function paintStar(ctx, x, y, r, color) {
-    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, color);
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
+  function addImg(parent, file, x, y, w, opts) {
+    opts = opts || {};
+    var img = document.createElement('img');
+    img.className = 'gx-photo';
+    img.src = 'img/galaxy/' + file;
+    img.decoding = 'async';
+    img.style.left = x + 'px';
+    img.style.top = y + 'px';
+    img.style.width = w + 'px';
+    var t = '';
+    if (opts.flip) t += ' scaleX(-1)';
+    if (opts.rot) t += ' rotate(' + opts.rot + 'deg)';
+    if (t) img.style.transform = t;
+    if (img.complete) img.classList.add('is-ready');
+    else img.onload = function () { img.classList.add('is-ready'); };
+    parent.appendChild(img);
+    return img;
   }
-
-  function paintFlare(ctx, x, y, len, alpha) {
-    var g = ctx.createLinearGradient(x - len, y, x + len, y);
-    g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(0.5, 'rgba(255,250,235,' + alpha + ')');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(x - len, y - 1, len * 2, 2);
-    var g2 = ctx.createLinearGradient(x, y - len * 0.55, x, y + len * 0.55);
-    g2.addColorStop(0, 'rgba(255,255,255,0)');
-    g2.addColorStop(0.5, 'rgba(255,250,235,' + alpha + ')');
-    g2.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g2;
-    ctx.fillRect(x - 1, y - len * 0.55, 2, len * 1.1);
-  }
-
-  function paintPanorama(ctx) {
-    var W = PANO_W, H = PANO_H;
-
-    // True black space with the faintest cold undertone
-    ctx.fillStyle = '#010004';
-    ctx.fillRect(0, 0, W, H);
-
-    // Vast dim ambient patches so the black has body
-    ctx.globalCompositeOperation = 'source-over';
-    for (var i = 0; i < 9; i++) {
-      paintCloud(ctx, Math.random() * W, Math.random() * H,
-        420 + Math.random() * 480, 260 + Math.random() * 260,
-        Math.random() * Math.PI,
-        [[0, 'rgba(24, 14, 58, 0.5)'], [1, 'rgba(0,0,0,0)']]);
-    }
-
-    // Everything luminous is additive from here on
-    ctx.globalCompositeOperation = 'lighter';
-
-    // A faint milky band ties the whole sphere together
-    for (i = 0; i < 34; i++) {
-      var bx = (i / 34) * W + Math.random() * 120;
-      var by = H * 0.52 + Math.sin(i * 0.9) * H * 0.05 + (Math.random() - 0.5) * 60;
-      paintCloud(ctx, bx, by, 260 + Math.random() * 200, 60 + Math.random() * 40,
-        (Math.random() - 0.5) * 0.3,
-        [[0, 'rgba(150, 170, 255, 0.07)'], [0.6, 'rgba(120, 130, 220, 0.04)'],
-         [1, 'rgba(0,0,0,0)']]);
-    }
-
-    // ===== The whole sphere: stars everywhere =====
-    for (i = 0; i < 900; i++) {
-      var sx = Math.random() * W, sy = Math.random() * H;
-      var sr = 0.5 + Math.pow(Math.random(), 2.2) * 1.9;
-      var pick = Math.random();
-      var col = pick < 0.6 ? 'rgba(255, 255, 255, 0.9)'
-              : pick < 0.8 ? 'rgba(188, 216, 255, 0.9)'
-              : pick < 0.95 ? 'rgba(255, 217, 168, 0.9)'
-              : 'rgba(255, 180, 220, 0.9)';
-      paintStar(ctx, sx, sy, sr, col);
-    }
-    // heroes: big glowing stars, a few with flares
-    for (i = 0; i < 26; i++) {
-      sx = Math.random() * W; sy = Math.random() * H;
-      paintStar(ctx, sx, sy, 5 + Math.random() * 9, 'rgba(200, 225, 255, 0.55)');
-      paintStar(ctx, sx, sy, 2, 'rgba(255, 255, 255, 1)');
-      if (i < 8) paintFlare(ctx, sx, sy, 40 + Math.random() * 70, 0.5);
-    }
-
-    // Rich vignette top and bottom so the blacks stay deep
-    ctx.globalCompositeOperation = 'source-over';
-    var vg = ctx.createLinearGradient(0, 0, 0, H);
-    vg.addColorStop(0, 'rgba(0, 0, 2, 0.55)');
-    vg.addColorStop(0.2, 'rgba(0,0,0,0)');
-    vg.addColorStop(0.8, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0, 0, 2, 0.6)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  /* ----- building the 360° window ----- */
 
   function enterGalaxy() {
     if (galaxyOn || !stage) return;
@@ -371,80 +293,138 @@
     ToddlAudio.nightChime();
 
     var rect = stage.getBoundingClientRect();
-    pano.dispW = Math.round(rect.width * 4);       // 4 screens = full 360°
-    pano.dispH = Math.round(rect.height * 1.45);
+    pano.dispW = Math.round(rect.width * 4);        // 4 screens = 360°
+    pano.dispH = Math.round(rect.height * 2.6);     // tall: look up & down
     pano.extraY = pano.dispH - rect.height;
     pano.pxPerRad = pano.dispW / (Math.PI * 2);
-    pano.pxPerRadY = pano.extraY / 0.9;            // ~±26° of usable tilt
+    pano.pxPerRadY = (pano.extraY / 2) / 1.05;      // ±60° of tilt
+    pano.layers = [];
 
     galaxyEl = document.createElement('div');
     galaxyEl.className = 'galaxy';
 
-    var win = document.createElement('div');
-    win.className = 'gx-window';
-    win.style.width = (pano.dispW * 2) + 'px';
-    win.style.height = pano.dispH + 'px';
-    pano.windowEl = win;
+    var W = pano.dispW, H = pano.dispH;
 
-    // Paint the sky once, show it twice for a seamless wrap
-    var canvas = document.createElement('canvas');
-    canvas.width = PANO_W;
-    canvas.height = PANO_H;
-    paintPanorama(canvas.getContext('2d'));
-    canvas.style.cssText = 'position:absolute;left:0;top:0;' +
-      'width:' + pano.dispW + 'px;height:' + pano.dispH + 'px;';
-    var canvasB = document.createElement('canvas');
-    canvasB.width = PANO_W;
-    canvasB.height = PANO_H;
-    canvasB.getContext('2d').drawImage(canvas, 0, 0);
-    canvasB.style.cssText = 'position:absolute;left:' + pano.dispW + 'px;top:0;' +
-      'width:' + pano.dispW + 'px;height:' + pano.dispH + 'px;';
-    win.appendChild(canvas);
-    win.appendChild(canvasB);
+    // --- Layer 0 (deepest): Webb's First Deep Field — thousands of
+    // real galaxies as the backdrop, mirror-tiled for a seamless wrap,
+    // crawling slowest of all ---
+    var dfw = Math.round(H * (1568 / 1600));
+    var starsLayer = makeLayer(0.72, dfw * 2);
+    var dfTiles = Math.ceil((dfw * 2 + rect.width) / dfw) + 1;
+    for (var di = 0; di < dfTiles; di++) {
+      var df = addImg(starsLayer, 'deepfield.jpg', di * dfw, 0, dfw,
+        { flip: di % 2 === 1 });
+      df.style.height = H + 'px';
+    }
 
-    // Real James Webb Space Telescope photographs are the vistas.
-    // screen-blend makes their black space transparent, so the painted
-    // starfield shines through and no rectangle edges exist.
+    // --- Layer 1: vast blurred nebula haze filling the whole sphere.
+    // Mirror-tiled (A, flipped A, A, …) at natural aspect; its wrap
+    // period is one mirror pair. ---
+    var hw = Math.round(H * (2048 / 1440));
+    var hazeLayer = makeLayer(0.85, hw * 2);
+    var hazeTiles = Math.ceil((hw * 2 + rect.width) / hw) + 1;
+    for (var hi = 0; hi < hazeTiles; hi++) {
+      addImg(hazeLayer, 'haze.webp', hi * hw, 0, hw, { flip: hi % 2 === 1 })
+        .style.height = H + 'px';
+    }
+
+    // --- Layer 2: the main nebula band — the four JWST vistas plus
+    // bridging wisps between them, one continuous cloud complex ---
+    var midLayer = makeLayer(1.0, W);
+    pano.midLayer = midLayer;
     var photos = [
-      { file: 'carina.jpg',    at: 0.125, h: 1.02, aspect: 2589 / 1500 },
-      { file: 'tarantula.jpg', at: 0.375, h: 1.06, aspect: 2593 / 1500 },
-      { file: 'quintet.jpg',   at: 0.625, h: 0.86, aspect: 1461 / 1400 },
-      { file: 'ring.jpg',      at: 0.875, h: 0.78, aspect: 1396 / 1300 }
+      { file: 'carina.webp',    at: 0.125, h: 0.42, aspect: 2589 / 1500 },
+      { file: 'tarantula.webp', at: 0.375, h: 0.44, aspect: 2593 / 1500 },
+      { file: 'quintet.webp',   at: 0.625, h: 0.36, aspect: 1461 / 1400 },
+      { file: 'ring.webp',      at: 0.875, h: 0.33, aspect: 1396 / 1300 }
     ];
+    var bridges = [
+      { file: 'wisp-b.webp', at: 0.0,   h: 0.26, aspect: 760 / 537, flip: true,  rot: 8,   dy: -0.06 },
+      { file: 'wisp-a.webp', at: 0.25,  h: 0.28, aspect: 760 / 524, flip: false, rot: -6,  dy: 0.05 },
+      { file: 'wisp-b.webp', at: 0.5,   h: 0.27, aspect: 760 / 537, flip: false, rot: 174, dy: 0.04 },
+      { file: 'wisp-a.webp', at: 0.75,  h: 0.26, aspect: 760 / 524, flip: true,  rot: 186, dy: -0.05 },
+      // vertical reach: wisps above and below the band
+      { file: 'wisp-c.webp', at: 0.18,  h: 0.2,  aspect: 760 / 766, flip: false, rot: 24,  dy: -0.3 },
+      { file: 'wisp-d.webp', at: 0.55,  h: 0.2,  aspect: 760 / 705, flip: true,  rot: -18, dy: 0.3 },
+      { file: 'wisp-d.webp', at: 0.3,   h: 0.18, aspect: 760 / 705, flip: false, rot: 150, dy: 0.28 },
+      { file: 'wisp-c.webp', at: 0.8,   h: 0.19, aspect: 760 / 766, flip: true,  rot: -140, dy: -0.28 }
+    ];
+    function placeMid(spec, shift) {
+      var h = H * spec.h;
+      var w = h * spec.aspect;
+      var cy = H * (0.5 + (spec.dy || 0));
+      var img = addImg(midLayer, spec.file,
+        W * spec.at - w / 2 + shift, cy - h / 2, w,
+        { flip: spec.flip, rot: spec.rot });
+      img.style.height = h + 'px';
+    }
     for (var pi = 0; pi < photos.length; pi++) {
-      placePhoto(win, photos[pi], 0);
-      placePhoto(win, photos[pi], pano.dispW);   // copy for the wrap
+      placeMid(photos[pi], 0);
+      placeMid(photos[pi], W);
+    }
+    for (var bi2 = 0; bi2 < bridges.length; bi2++) {
+      placeMid(bridges[bi2], 0);
+      placeMid(bridges[bi2], W);
     }
 
-    var homeX = pano.dispW * 0.125;
-    var moon = addOverlay(win, 'gx-moon', homeX + rect.width * 0.34,
-      pano.dispH * 0.14);
+    // moon + twinkling stars ride the mid layer
+    var moon = addOverlay(midLayer, 'gx-moon', W * 0.125 + rect.width * 0.34,
+      H * 0.30);
     moon.textContent = '\u{1F319}';
-
-    for (var i = 0; i < 30; i++) {
-      var tx = Math.random() * pano.dispW;
-      var ty = Math.random() * pano.dispH;
-      makeTwinkle(win, tx, ty);
-      makeTwinkle(win, tx + pano.dispW, ty);   // copy for the wrap
+    for (var i = 0; i < 34; i++) {
+      var tx = Math.random() * W;
+      var ty = Math.random() * H;
+      makeTwinkle(midLayer, tx, ty);
+      makeTwinkle(midLayer, tx + W, ty);
     }
 
-    galaxyEl.appendChild(win);
+    // --- Layer 3 (nearest): crisp wisps that sweep past fastest —
+    // the "you could touch it" layer ---
+    var nearLayer = makeLayer(1.18, W);
+    var nears = [
+      { file: 'wisp-a.webp', at: 0.06, h: 0.34, aspect: 760 / 524, flip: false, rot: -10, dy: 0.18 },
+      { file: 'wisp-b.webp', at: 0.32, h: 0.36, aspect: 760 / 537, flip: true,  rot: 12,  dy: -0.16 },
+      { file: 'wisp-c.webp', at: 0.56, h: 0.3,  aspect: 760 / 766, flip: false, rot: -20, dy: 0.2 },
+      { file: 'wisp-a.webp', at: 0.7,  h: 0.32, aspect: 760 / 524, flip: true,  rot: 168, dy: -0.2 },
+      { file: 'wisp-d.webp', at: 0.9,  h: 0.3,  aspect: 760 / 705, flip: false, rot: 14,  dy: 0.16 }
+    ];
+    function placeNear(spec, shift) {
+      var h = H * spec.h;
+      var w = h * spec.aspect;
+      var cy = H * (0.5 + spec.dy);
+      var img = addImg(nearLayer, spec.file,
+        W * spec.at - w / 2 + shift, cy - h / 2, w,
+        { flip: spec.flip, rot: spec.rot });
+      img.style.height = h + 'px';
+      img.classList.add('gx-near');
+    }
+    for (var ni = 0; ni < nears.length; ni++) {
+      placeNear(nears[ni], 0);
+      placeNear(nears[ni], W);
+    }
+
+    for (var li = 0; li < pano.layers.length; li++) {
+      galaxyEl.appendChild(pano.layers[li].el);
+    }
 
     // The galaxy sits above the day scenery, below the bubbles.
     stage.insertBefore(galaxyEl, layer);
 
-    // Start the view centered on the fiery ring.
-    pano.targetX = homeX - rect.width / 2 + pano.dispW;   // keep positive
+    // Start the view centered on the Carina vista.
+    var motionNow = window.ToddlMotion ? ToddlMotion.get() : { azimuth: 0 };
+    pano.azBase = motionNow.azimuth;
+    pano.manualAz = 0;
+    pano.manualEl = 0;
+    pano.targetX = W * 0.125 - rect.width / 2 + W;   // keep positive
     pano.targetY = pano.extraY / 2;
     pano.x = pano.targetX;
     pano.y = pano.targetY;
-    pano.lastAz = null;
-    pano.hasSensor = false;
     pano.lastInputAt = 0;
+    pano.sensorLive = false;
 
     // Every bubble suits up: tiny astronaut helmets for the void.
-    for (var bi = 0; bi < bubbles.length; bi++) {
-      bubbles[bi].el.classList.add('is-space');
+    for (var bl = 0; bl < bubbles.length; bl++) {
+      bubbles[bl].el.classList.add('is-space');
     }
 
     // The music-box gives way to something vast and slow.
@@ -460,35 +440,16 @@
     startParallax();
   }
 
-  function placePhoto(win, spec, shift) {
-    var h = pano.dispH * spec.h;
-    var w = h * spec.aspect;
-    var img = document.createElement('img');
-    img.className = 'gx-photo';
-    img.src = 'img/galaxy/' + spec.file;
-    img.decoding = 'async';
-    img.style.height = h + 'px';
-    img.style.width = w + 'px';
-    img.style.left = (pano.dispW * spec.at - w / 2 + shift) + 'px';
-    img.style.top = ((pano.dispH - h) / 2) + 'px';
-    if (img.complete) {
-      img.classList.add('is-ready');
-    } else {
-      img.onload = function () { img.classList.add('is-ready'); };
-    }
-    win.appendChild(img);
-  }
-
-  function addOverlay(win, className, x, y) {
+  function addOverlay(parent, className, x, y) {
     var el = document.createElement('div');
     el.className = className;
     el.style.left = x + 'px';
     el.style.top = y + 'px';
-    win.appendChild(el);
+    parent.appendChild(el);
     return el;
   }
 
-  function makeTwinkle(win, x, y) {
+  function makeTwinkle(parent, x, y) {
     var star = document.createElement('div');
     star.className = 'gx-star';
     var s = 2 + Math.random() * 3;
@@ -502,7 +463,7 @@
     if (kind < 0.25) star.classList.add('gx-star-bright');
     else if (kind < 0.5) star.classList.add('gx-star-warm');
     else if (kind < 0.75) star.classList.add('gx-star-cool');
-    win.appendChild(star);
+    parent.appendChild(star);
   }
 
   function spawnComet() {
@@ -515,71 +476,20 @@
     window.setTimeout(function () { remove(comet); }, 1800);
   }
 
-  /* ----- true view direction from device orientation ----- */
-
-  function wrapPi(a) {
-    while (a > Math.PI) a -= Math.PI * 2;
-    while (a < -Math.PI) a += Math.PI * 2;
-    return a;
-  }
-
-  // W3C deviceorientation angles (Z-X'-Y'' intrinsic) → the direction
-  // the user is looking (out of the back of the screen), as azimuth
-  // and elevation in the world frame.
-  function viewDirection(alpha, beta, gamma) {
-    var d = Math.PI / 180;
-    var cX = Math.cos(beta * d), sX = Math.sin(beta * d);
-    var cY = Math.cos(gamma * d), sY = Math.sin(gamma * d);
-    var cZ = Math.cos(alpha * d), sZ = Math.sin(alpha * d);
-    // third column of R = Rz(alpha) Rx(beta) Ry(gamma): device z in world
-    var zx = cY * sZ * sX + cZ * sY;
-    var zy = sZ * sY - cZ * cY * sX;
-    var zz = cX * cY;
-    // looking direction is out of the back of the screen: -z
-    var vx = -zx, vy = -zy, vz = -zz;
-    return {
-      az: Math.atan2(vx, vy),
-      el: Math.asin(Math.max(-1, Math.min(1, vz)))
-    };
-  }
-
-  function handleOrientation(e) {
-    if (e.beta == null || e.gamma == null) return;
-    pano.hasSensor = true;
-
-    var view = viewDirection(e.alpha || 0, e.beta, e.gamma);
-
-    // Accumulate azimuth continuously so 359°→0° never jumps, and
-    // full turns keep going round and round.
-    if (pano.lastAz === null) {
-      pano.lastAz = view.az;
-      pano.baseEl = view.el;
-      return;
-    }
-    var dAz = wrapPi(view.az - pano.lastAz);
-    pano.lastAz = view.az;
-    // Turning the phone right pans the window right across the sky.
-    pano.targetX += dAz * pano.pxPerRad;
-
-    var relEl = view.el - pano.baseEl;
-    pano.targetY = pano.extraY / 2 - relEl * pano.pxPerRadY;
-    pano.targetY = Math.max(0, Math.min(pano.extraY, pano.targetY));
-  }
-
-  /* ----- drag-to-look fallback (no gyroscope) ----- */
+  /* ----- drag-to-look fallback (only when no gyroscope) ----- */
 
   function panoPointerDown(e) {
-    if (pano.hasSensor) return;
+    if (pano.sensorLive) return;
     pano.dragging = true;
     pano.dragLastX = e.clientX;
     pano.dragLastY = e.clientY;
   }
 
   function panoPointerMove(e) {
-    if (!pano.dragging || pano.hasSensor) return;
-    pano.targetX -= (e.clientX - pano.dragLastX) * 1.4;
-    pano.targetY = Math.max(0, Math.min(pano.extraY,
-      pano.targetY - (e.clientY - pano.dragLastY) * 1.4));
+    if (!pano.dragging || pano.sensorLive) return;
+    pano.manualAz += (e.clientX - pano.dragLastX) * -1.4 / pano.pxPerRad;
+    pano.manualEl += (e.clientY - pano.dragLastY) * 1.2 / pano.pxPerRadY;
+    pano.manualEl = Math.max(-1.05, Math.min(1.05, pano.manualEl));
     pano.dragLastX = e.clientX;
     pano.dragLastY = e.clientY;
     pano.lastInputAt = Date.now();
@@ -590,21 +500,8 @@
   }
 
   function startParallax() {
-    // iOS requires an explicit permission request from a user gesture —
-    // and the moon pop that opened the galaxy is exactly that gesture.
-    try {
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(function (state) {
-          if (state === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation);
-          }
-        }).catch(function () { /* fall back to drag-to-look */ });
-      } else {
-        window.addEventListener('deviceorientation', handleOrientation);
-      }
-    } catch (err) { /* fall back to drag-to-look */ }
-
+    // Ask again from this gesture in case the first request was missed.
+    if (window.ToddlMotion) ToddlMotion.request();
     stage.addEventListener('pointerdown', panoPointerDown);
     stage.addEventListener('pointermove', panoPointerMove);
     stage.addEventListener('pointerup', panoPointerUp);
@@ -612,43 +509,57 @@
   }
 
   function stopParallax() {
-    window.removeEventListener('deviceorientation', handleOrientation);
     if (stage) {
       stage.removeEventListener('pointerdown', panoPointerDown);
       stage.removeEventListener('pointermove', panoPointerMove);
       stage.removeEventListener('pointerup', panoPointerUp);
       stage.removeEventListener('pointercancel', panoPointerUp);
     }
-    pano.windowEl = null;
+    pano.layers = [];
+    pano.midLayer = null;
     pano.dragging = false;
   }
 
   // Called every frame while the galaxy is up.
   function renderPano(t, dt) {
-    if (!pano.windowEl) return;
+    if (!pano.layers.length) return;
 
-    // With no gyroscope and no recent drag, the sky slowly revolves
-    // on its own — the full 360° drifts past in about four minutes.
-    if (!pano.hasSensor && !pano.dragging &&
-        Date.now() - pano.lastInputAt > 4000) {
-      pano.targetX += dt * pano.dispW / 240;
+    var az, el;
+    var m = window.ToddlMotion ? ToddlMotion.get() : { active: false };
+    if (m.active) {
+      // The phone is the window: turn it, the sky answers.
+      pano.sensorLive = true;
+      az = m.azimuth - pano.azBase;
+      el = m.elevation;
+    } else {
+      // No gyroscope: finger-look, and a slow self-turn when idle.
+      if (!pano.dragging && Date.now() - pano.lastInputAt > 4000) {
+        pano.manualAz += dt * (Math.PI * 2) / 240;
+      }
+      az = pano.manualAz;
+      el = pano.manualEl;
     }
 
-    pano.x += (pano.targetX - pano.x) * 0.08;
-    pano.y += (pano.targetY - pano.y) * 0.08;
+    // Home vista center minus half a screen lands at 0; keep positive
+    // with a +dispW bias, then add the live view angle.
+    pano.targetX = pano.dispW + az * pano.pxPerRad;
+    pano.targetY = Math.max(0, Math.min(pano.extraY,
+      pano.extraY / 2 - el * pano.pxPerRadY));
 
-    // Wrap both smoothed and target together so the lerp never sees
-    // a seam. Keep values positive for clean modulo.
-    if (pano.x > pano.dispW) {
-      pano.x -= pano.dispW;
-      pano.targetX -= pano.dispW;
-    } else if (pano.x < 0) {
-      pano.x += pano.dispW;
-      pano.targetX += pano.dispW;
+    pano.x += (pano.targetX - pano.x) * 0.09;
+    pano.y += (pano.targetY - pano.y) * 0.09;
+
+    // Per-layer parallax: each depth pans at its own rate; every
+    // layer's content repeats with period dispW, so wrap per layer.
+    for (var i = 0; i < pano.layers.length; i++) {
+      var L = pano.layers[i];
+      var period = L.period || pano.dispW;
+      var lx = (pano.x * L.f) % period;
+      if (lx < 0) lx += period;
+      var ly = pano.y * L.f + (pano.extraY * (1 - L.f)) / 2;
+      L.el.style.transform =
+        'translate3d(' + (-lx) + 'px,' + (-ly) + 'px,0)';
     }
-
-    pano.windowEl.style.transform =
-      'translate3d(' + (-pano.x) + 'px,' + (-pano.y) + 'px,0)';
   }
 
   function tick(t) {
@@ -689,8 +600,10 @@
     bubbles = [];
     lastTime = 0;
     popCount = 0;
-    ['carina', 'tarantula', 'quintet', 'ring'].forEach(function (name) {
-      new Image().src = 'img/galaxy/' + name + '.jpg';
+    ['carina.webp', 'tarantula.webp', 'quintet.webp', 'ring.webp',
+     'haze.webp', 'wisp-a.webp', 'wisp-b.webp', 'wisp-c.webp',
+     'wisp-d.webp', 'deepfield.jpg'].forEach(function (name) {
+      new Image().src = 'img/galaxy/' + name;
     });
     spawnBubble(0.12);
     spawnBubble(0.32);
