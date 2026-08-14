@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#faf6ef"/>
+  <circle cx="200" cy="240" r="120" fill="#a8bfd4" opacity="0.55"/>
+  <circle cx="350" cy="330" r="70" fill="#b7c9a8" opacity="0.6"/>
+  <circle cx="340" cy="150" r="46" fill="#e6b8b0" opacity="0.6"/>
+  <path d="M132 190 q18 -36 54 -46" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
+  <text x="256" y="452" text-anchor="middle" font-family="system-ui, sans-serif" font-size="88" font-weight="700" fill="#5b544c">Toddl</text>
+</svg>

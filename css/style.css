@@ -1,0 +1,557 @@
+/* ============================================================
+   Toddl — calm Montessori-style toddler games
+   Design language: soft cream ground, muted pastels, slow
+   motion, big rounded touch targets, no flashing or clutter.
+   ============================================================ */
+
+:root {
+  /* Ground + ink */
+  --cream: #faf6ef;
+  --cream-deep: #f3ecdf;
+  --ink: #5b544c;
+  --ink-soft: #8a8177;
+
+  /* Muted pastel palette (low saturation on purpose) */
+  --sage: #b7c9a8;
+  --sage-deep: #93aa81;
+  --dusty-blue: #a8bfd4;
+  --dusty-blue-deep: #7f9db8;
+  --blush: #e6b8b0;
+  --blush-deep: #cf9188;
+  --butter: #ecd9a0;
+  --butter-deep: #d4b96a;
+  --lilac: #c5b6d4;
+  --lilac-deep: #a08fb8;
+
+  --card-shadow: 0 6px 18px rgba(91, 84, 76, 0.10);
+  --radius-big: 28px;
+
+  /* Slow everything down: toddlers need time to track motion */
+  --ease-gentle: cubic-bezier(0.33, 0.0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: -apple-system, "SF Pro Rounded", "Segoe UI", "Comic Neue",
+    "Quicksand", system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  touch-action: none;              /* the app handles all gestures itself */
+  user-select: none;
+  -webkit-user-select: none;
+  position: fixed;
+  inset: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ============ Screens ============ */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-gentle);
+}
+
+.screen.is-active {
+  display: flex;
+  opacity: 1;
+}
+
+/* ============ Home ============ */
+
+#screen-home {
+  align-items: center;
+  justify-content: space-between;
+  padding: max(24px, env(safe-area-inset-top)) 20px
+           max(16px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(120% 70% at 50% -10%, var(--cream-deep) 0%, transparent 60%),
+    var(--cream);
+}
+
+.home-header {
+  text-align: center;
+  padding-top: 12px;
+}
+
+.home-title {
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.home-subtitle {
+  color: var(--ink-soft);
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  margin-top: 2px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 210px));
+  gap: clamp(14px, 3.5vw, 26px);
+  width: 100%;
+  max-width: 480px;
+  justify-content: center;
+  align-content: center;
+  flex: 1;
+  padding: 16px 0;
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .home-grid {
+    grid-template-columns: repeat(4, minmax(110px, 160px));
+    max-width: 720px;
+  }
+}
+
+.game-card {
+  aspect-ratio: 1 / 1.08;
+  border-radius: var(--radius-big);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  transition: transform 0.35s var(--ease-gentle);
+}
+
+.game-card:active {
+  transform: scale(0.96);
+}
+
+.game-card svg {
+  width: 62%;
+  height: auto;
+}
+
+.game-card-label {
+  font-size: clamp(1rem, 3.4vw, 1.2rem);
+  font-weight: 600;
+  color: var(--ink);
+  opacity: 0.85;
+}
+
+.card-bubbles { background: #dfe9f2; }
+.card-shapes  { background: #e5ecdb; }
+.card-colors  { background: #f4e4d7; }
+.card-garden  { background: #ece5f2; }
+
+/* Home card icon fills */
+.icon-bubble-a { fill: rgba(168, 191, 212, 0.55); }
+.icon-bubble-b { fill: rgba(168, 191, 212, 0.40); }
+.icon-bubble-c { fill: rgba(168, 191, 212, 0.30); }
+.icon-shine    { fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; opacity: 0.8; }
+.icon-shape-a  { fill: var(--sage); }
+.icon-shape-b  { fill: var(--dusty-blue); }
+.icon-shape-c  { fill: var(--blush); }
+.icon-bowl-a   { fill: var(--butter); }
+.icon-bowl-b   { fill: var(--blush); }
+.icon-dot-a    { fill: var(--butter-deep); }
+.icon-dot-b    { fill: var(--blush-deep); }
+.icon-stem     { stroke: var(--sage-deep); stroke-width: 5; stroke-linecap: round; fill: none; }
+.icon-flower-center { fill: var(--butter-deep); }
+.icon-petal    { fill: var(--lilac); }
+.icon-leaf     { fill: var(--sage); }
+
+/* ============ Grown-ups (parent gate + panel) ============ */
+
+.home-footer {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.parents-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.parents-icon { letter-spacing: 3px; font-size: 0.6rem; }
+
+.parents-button.is-holding {
+  background: var(--cream-deep);
+}
+
+#screen-parents {
+  align-items: center;
+  justify-content: center;
+  background: rgba(91, 84, 76, 0.25);
+  padding: 20px;
+}
+
+.parents-panel {
+  background: var(--cream);
+  border-radius: var(--radius-big);
+  box-shadow: var(--card-shadow);
+  padding: 28px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.parents-panel h2 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.parents-note, .parents-tip {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.parents-tip { margin-top: 8px; }
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+
+.setting-name { font-weight: 600; }
+
+.toggle {
+  width: 56px;
+  height: 32px;
+  border-radius: 999px;
+  background: #d8d1c6;
+  position: relative;
+  transition: background 0.3s var(--ease-gentle);
+}
+
+.toggle[aria-checked="true"] { background: var(--sage-deep); }
+
+.toggle-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.3s var(--ease-gentle);
+}
+
+.toggle[aria-checked="true"] .toggle-knob { transform: translateX(24px); }
+
+.parents-done {
+  margin-top: 12px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--sage);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ============ Game chrome ============ */
+
+.screen-game { background: var(--cream); }
+
+.game-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.home-button {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(250, 246, 239, 0.85);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.home-button[hidden] { display: none; }
+
+.home-button svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--ink-soft);
+}
+
+/* ============ Bubbles ============ */
+
+#screen-bubbles .game-stage {
+  background:
+    linear-gradient(180deg, #eef3f7 0%, #f6f4ec 70%, var(--cream) 100%);
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+  /* Big forgiving touch target; visual circle is the element itself */
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.25) 22%, rgba(255, 255, 255, 0) 45%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.10) 55%,
+      rgba(168, 191, 212, 0.35) 92%, rgba(127, 157, 184, 0.45) 100%);
+  box-shadow: inset 0 -4px 10px rgba(127, 157, 184, 0.18);
+}
+
+.bubble-content {
+  font-size: 46%;
+  /* font-size set relative to bubble via inline style; emoji sits inside */
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.bubble.is-popping {
+  animation: bubble-pop 0.45s var(--ease-gentle) forwards;
+}
+
+@keyframes bubble-pop {
+  0%   { opacity: 1; }
+  40%  { transform: scale(1.15); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+.pop-reveal {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  animation: reveal-float 2.2s var(--ease-gentle) forwards;
+  z-index: 10;
+}
+
+.pop-reveal-emoji { line-height: 1; }
+
+.pop-reveal-word {
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(250, 246, 239, 0.9);
+  padding: 4px 14px;
+  border-radius: 999px;
+  box-shadow: var(--card-shadow);
+}
+
+@keyframes reveal-float {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.9); }
+  15%  { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; transform: translateY(-14px) scale(1); }
+  100% { opacity: 0; transform: translateY(-22px) scale(1); }
+}
+
+/* ============ Shapes ============ */
+
+#screen-shapes .game-stage {
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+}
+
+.shape-board {
+  flex: 1;
+  position: relative;
+}
+
+.shape-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.shape-slot svg .slot-outline {
+  fill: var(--cream-deep);
+  stroke: #cfc5b4;
+  stroke-width: 3;
+  stroke-dasharray: 8 8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.shape-slot.is-filled svg .slot-outline {
+  stroke-dasharray: none;
+  stroke: transparent;
+}
+
+.shape-piece {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  will-change: transform, left, top;
+  filter: drop-shadow(0 5px 8px rgba(91, 84, 76, 0.18));
+}
+
+.shape-piece.is-dragging {
+  filter: drop-shadow(0 12px 16px rgba(91, 84, 76, 0.22));
+  z-index: 20;
+}
+
+.shape-piece.is-placed {
+  filter: none;
+  pointer-events: none;
+}
+
+.shape-piece.is-returning {
+  transition: left 0.55s var(--ease-gentle), top 0.55s var(--ease-gentle);
+}
+
+.shape-piece.is-snapping {
+  transition: left 0.3s var(--ease-gentle), top 0.3s var(--ease-gentle);
+}
+
+.shape-piece svg .piece-fill { stroke-linejoin: round; stroke-linecap: round; }
+
+/* ============ Colors ============ */
+
+#screen-colors .game-stage {
+  background: var(--cream);
+}
+
+.color-bowl {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-bowl svg { width: 100%; height: auto; overflow: visible; }
+
+.color-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  will-change: left, top;
+  filter: drop-shadow(0 4px 7px rgba(91, 84, 76, 0.16));
+}
+
+.color-item.is-dragging {
+  filter: drop-shadow(0 10px 14px rgba(91, 84, 76, 0.22));
+  z-index: 20;
+}
+
+.color-item.is-returning {
+  transition: left 0.55s var(--ease-gentle), top 0.55s var(--ease-gentle);
+}
+
+.color-item.is-sinking {
+  transition: left 0.35s var(--ease-gentle), top 0.35s var(--ease-gentle),
+    opacity 0.4s var(--ease-gentle) 0.15s, transform 0.4s var(--ease-gentle);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.55);
+  pointer-events: none;
+}
+
+/* ============ Garden ============ */
+
+#screen-garden .game-stage {
+  background:
+    linear-gradient(180deg, #f2f0e6 0%, var(--cream) 55%, #ece5d2 100%);
+}
+
+.garden-ground {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 26%;
+  background: linear-gradient(180deg, #dcd2ba 0%, #d0c4a8 100%);
+  border-radius: 40px 40px 0 0;
+}
+
+.garden-mound {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.garden-mound svg { width: 100%; height: 100%; overflow: visible; }
+
+.count-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(250, 246, 239, 0.9);
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--card-shadow);
+  pointer-events: none;
+  animation: reveal-float 1.8s var(--ease-gentle) forwards;
+  z-index: 10;
+}
+
+.butterfly {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+  will-change: transform;
+}
+
+/* Gentle celebration stars, shared by games */
+.calm-star {
+  position: absolute;
+  pointer-events: none;
+  animation: star-drift 2.4s var(--ease-gentle) forwards;
+  z-index: 30;
+}
+
+.calm-star svg { display: block; }
+.calm-star svg path { fill: var(--butter-deep); opacity: 0.75; }
+
+@keyframes star-drift {
+  0%   { opacity: 0; transform: translateY(0) scale(0.6) rotate(0deg); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-46px) scale(1) rotate(24deg); }
+}
+
+/* Reduced-motion users get near-static screens */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01s !important; transition-duration: 0.01s !important; }
+}

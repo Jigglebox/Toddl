@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#faf6ef">
+  <meta name="description" content="Toddl — calm Montessori-style games for toddlers">
+  <title>Toddl</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== Home screen ===== -->
+  <section id="screen-home" class="screen is-active" aria-label="Home">
+    <header class="home-header">
+      <h1 class="home-title">Toddl</h1>
+      <p class="home-subtitle">calm little games</p>
+    </header>
+
+    <nav class="home-grid" aria-label="Games">
+      <button class="game-card card-bubbles" data-game="bubbles" aria-label="Bubbles">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="38" cy="46" r="26" class="icon-bubble-a"/>
+          <circle cx="72" cy="66" r="15" class="icon-bubble-b"/>
+          <circle cx="70" cy="26" r="10" class="icon-bubble-c"/>
+          <path d="M28 36 q4 -8 12 -10" class="icon-shine"/>
+        </svg>
+        <span class="game-card-label">Bubbles</span>
+      </button>
+
+      <button class="game-card card-shapes" data-game="shapes" aria-label="Shapes">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <rect x="14" y="40" width="32" height="32" rx="6" class="icon-shape-a"/>
+          <circle cx="70" cy="34" r="17" class="icon-shape-b"/>
+          <path d="M55 88 L70 60 L85 88 Z" class="icon-shape-c" stroke-linejoin="round"/>
+        </svg>
+        <span class="game-card-label">Shapes</span>
+      </button>
+
+      <button class="game-card card-colors" data-game="colors" aria-label="Colors">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M18 58 a16 14 0 0 0 32 0 Z" class="icon-bowl-a"/>
+          <path d="M52 58 a16 14 0 0 0 32 0 Z" class="icon-bowl-b"/>
+          <circle cx="34" cy="42" r="9" class="icon-dot-a"/>
+          <circle cx="68" cy="42" r="9" class="icon-dot-b"/>
+        </svg>
+        <span class="game-card-label">Colors</span>
+      </button>
+
+      <button class="game-card card-garden" data-game="garden" aria-label="Garden">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M50 82 V46" class="icon-stem"/>
+          <circle cx="50" cy="36" r="8" class="icon-flower-center"/>
+          <circle cx="50" cy="20" r="8" class="icon-petal"/>
+          <circle cx="64" cy="30" r="8" class="icon-petal"/>
+          <circle cx="60" cy="46" r="8" class="icon-petal"/>
+          <circle cx="40" cy="46" r="8" class="icon-petal"/>
+          <circle cx="36" cy="30" r="8" class="icon-petal"/>
+          <path d="M50 70 q-14 -4 -16 -16 q14 2 16 16" class="icon-leaf"/>
+        </svg>
+        <span class="game-card-label">Garden</span>
+      </button>
+    </nav>
+
+    <footer class="home-footer">
+      <button id="btn-parents" class="parents-button" aria-label="Grown-ups: press and hold">
+        <span class="parents-icon" aria-hidden="true">&#9679;&#9679;&#9679;</span>
+        <span class="parents-label">grown-ups &mdash; hold</span>
+      </button>
+    </footer>
+  </section>
+
+  <!-- ===== Game screens ===== -->
+  <section id="screen-bubbles" class="screen screen-game" aria-label="Bubbles game">
+    <div class="game-stage" id="stage-bubbles"></div>
+  </section>
+
+  <section id="screen-shapes" class="screen screen-game" aria-label="Shapes game">
+    <div class="game-stage" id="stage-shapes"></div>
+  </section>
+
+  <section id="screen-colors" class="screen screen-game" aria-label="Colors game">
+    <div class="game-stage" id="stage-colors"></div>
+  </section>
+
+  <section id="screen-garden" class="screen screen-game" aria-label="Garden game">
+    <div class="game-stage" id="stage-garden"></div>
+  </section>
+
+  <!-- Home button, shown on game screens -->
+  <button id="btn-home" class="home-button" aria-label="Go home" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 11 L12 4 L20 11 V20 a1 1 0 0 1 -1 1 H15 V15 H9 V21 H5 a1 1 0 0 1 -1 -1 Z"/>
+    </svg>
+  </button>
+
+  <!-- ===== Grown-ups panel (parent gate) ===== -->
+  <section id="screen-parents" class="screen" aria-label="Grown-ups settings">
+    <div class="parents-panel">
+      <h2>For grown-ups</h2>
+      <p class="parents-note">
+        Toddl is a set of calm, Montessori-inspired activities for children
+        around ages 1&ndash;3. There are no scores, timers, ads, or failure
+        states &mdash; just slow, repeatable cause-and-effect play.
+      </p>
+
+      <div class="setting-row">
+        <span class="setting-name">Gentle sounds</span>
+        <button class="toggle" id="toggle-sound" role="switch" aria-checked="true" aria-label="Gentle sounds">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <span class="setting-name">Spoken words</span>
+        <button class="toggle" id="toggle-voice" role="switch" aria-checked="true" aria-label="Spoken words">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+
+      <p class="parents-tip">
+        Tip: sit with your child and name what they see. The games are
+        designed to be played together.
+      </p>
+
+      <button id="btn-parents-done" class="parents-done">Done</button>
+    </div>
+  </section>
+
+  <script src="js/audio.js"></script>
+  <script src="js/bubbles.js"></script>
+  <script src="js/shapes.js"></script>
+  <script src="js/colors.js"></script>
+  <script src="js/garden.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
