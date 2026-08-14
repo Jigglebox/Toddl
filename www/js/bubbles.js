@@ -203,9 +203,54 @@
 
   /* ---------- Galaxy night ----------
      Popping the moon bubble melts the day sky into deep space: a
-     slowly counter-rotating spiral nebula, dozens of twinkling
-     stars, a glowing moon, and the occasional shooting star. The
-     bubbles keep drifting through it, lit against the dark. */
+     fiery ring nebula swirling around a dark void with a blazing
+     star at its heart, built from parallax layers. Tilting the
+     phone (or moving a finger) shifts the layers at different
+     depths, so it feels like looking around inside the galaxy. */
+
+  var gxLayers = null;      // { stars, far, near, core }
+  var parallax = {
+    x: 0, y: 0,             // smoothed position actually rendered
+    tx: 0, ty: 0,           // target from sensor / pointer
+    baseBeta: null, baseGamma: null,
+    hasSensor: false
+  };
+
+  function makeCloud(parent, opts) {
+    var cloud = document.createElement('div');
+    cloud.className = 'gx-cloud';
+    cloud.style.width = opts.w + 'vmax';
+    cloud.style.height = opts.h + 'vmax';
+    // Center-relative: works both inside the 0-size rings (50% = 0)
+    // and when placed directly on a full-size layer.
+    cloud.style.left = 'calc(50% + ' + opts.x + 'vmax)';
+    cloud.style.top = 'calc(46% + ' + opts.y + 'vmax)';
+    cloud.style.background = 'radial-gradient(closest-side, ' +
+      opts.inner + ' 0%, ' + opts.outer + ' 55%, transparent 100%)';
+    cloud.style.transform = 'translate(-50%, -50%) rotate(' + opts.rot + 'deg)';
+    cloud.style.opacity = opts.opacity;
+    parent.appendChild(cloud);
+  }
+
+  // A ring of stretched luminous clouds around the void. Tangential
+  // rotation makes overlapping blobs read as swirling arms of gas.
+  function buildRing(ring, radius, palette, scale) {
+    var n = palette.length;
+    for (var i = 0; i < n; i++) {
+      var angle = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+      var r = radius * (0.85 + Math.random() * 0.35);
+      makeCloud(ring, {
+        x: Math.cos(angle) * r,
+        y: Math.sin(angle) * r,
+        w: (26 + Math.random() * 16) * scale,
+        h: (10 + Math.random() * 6) * scale,
+        rot: angle * 180 / Math.PI + 90 + (Math.random() * 24 - 12),
+        inner: palette[i][0],
+        outer: palette[i][1],
+        opacity: 0.75 + Math.random() * 0.25
+      });
+    }
+  }
 
   function enterGalaxy() {
     if (galaxyOn || !stage) return;
@@ -216,18 +261,19 @@
     galaxyEl = document.createElement('div');
     galaxyEl.className = 'galaxy';
 
-    var swirlA = document.createElement('div');
-    swirlA.className = 'gx-swirl gx-swirl-a';
-    galaxyEl.appendChild(swirlA);
-    var swirlB = document.createElement('div');
-    swirlB.className = 'gx-swirl gx-swirl-b';
-    galaxyEl.appendChild(swirlB);
+    gxLayers = {
+      stars: document.createElement('div'),
+      far: document.createElement('div'),
+      near: document.createElement('div'),
+      core: document.createElement('div')
+    };
+    gxLayers.stars.className = 'gx-layer';
+    gxLayers.far.className = 'gx-layer';
+    gxLayers.near.className = 'gx-layer';
+    gxLayers.core.className = 'gx-layer';
 
-    var core = document.createElement('div');
-    core.className = 'gx-core';
-    galaxyEl.appendChild(core);
-
-    for (var i = 0; i < 60; i++) {
+    // --- Star field (deepest layer) ---
+    for (var i = 0; i < 80; i++) {
       var star = document.createElement('div');
       star.className = 'gx-star';
       var s = 1.5 + Math.random() * 2.8;
@@ -237,14 +283,75 @@
       star.style.top = (Math.random() * 100) + '%';
       star.style.setProperty('--tw', (2 + Math.random() * 4) + 's');
       star.style.animationDelay = (-Math.random() * 6) + 's';
-      if (Math.random() < 0.15) star.classList.add('gx-star-bright');
-      galaxyEl.appendChild(star);
+      var kind = Math.random();
+      if (kind < 0.12) star.classList.add('gx-star-bright');
+      else if (kind < 0.24) star.classList.add('gx-star-warm');
+      else if (kind < 0.36) star.classList.add('gx-star-cool');
+      gxLayers.stars.appendChild(star);
     }
 
+    // --- Far layer: cool outer arms + corner dust like deep space ---
+    var ringB = document.createElement('div');
+    ringB.className = 'gx-ring gx-ring-b';
+    buildRing(ringB, 30, [
+      ['rgba(56, 168, 190, 0.50)', 'rgba(38, 110, 150, 0.22)'],
+      ['rgba(90, 110, 205, 0.42)', 'rgba(60, 70, 160, 0.18)'],
+      ['rgba(150, 80, 190, 0.38)', 'rgba(100, 50, 150, 0.16)'],
+      ['rgba(66, 150, 200, 0.35)', 'rgba(40, 90, 150, 0.15)'],
+      ['rgba(180, 100, 170, 0.32)', 'rgba(120, 60, 130, 0.14)']
+    ], 1.35);
+    gxLayers.far.appendChild(ringB);
+    // Big slow dust banks in the corners
+    makeCloud(gxLayers.far, {
+      x: -34, y: 26, w: 60, h: 34, rot: -18, opacity: 0.8,
+      inner: 'rgba(196, 110, 60, 0.30)', outer: 'rgba(120, 60, 50, 0.12)'
+    });
+    makeCloud(gxLayers.far, {
+      x: -30, y: -26, w: 52, h: 30, rot: 22, opacity: 0.75,
+      inner: 'rgba(60, 180, 190, 0.26)', outer: 'rgba(40, 110, 140, 0.10)'
+    });
+
+    // --- Near layer: the fiery ring itself ---
+    var ringA = document.createElement('div');
+    ringA.className = 'gx-ring';
+    buildRing(ringA, 21, [
+      ['rgba(255, 150, 70, 0.85)', 'rgba(214, 90, 50, 0.35)'],
+      ['rgba(232, 90, 70, 0.80)', 'rgba(170, 50, 60, 0.32)'],
+      ['rgba(255, 196, 110, 0.80)', 'rgba(220, 130, 60, 0.32)'],
+      ['rgba(214, 70, 110, 0.70)', 'rgba(150, 40, 90, 0.28)'],
+      ['rgba(255, 130, 60, 0.80)', 'rgba(200, 80, 40, 0.32)'],
+      ['rgba(240, 110, 80, 0.75)', 'rgba(180, 60, 60, 0.30)'],
+      ['rgba(255, 170, 90, 0.78)', 'rgba(210, 110, 50, 0.30)']
+    ], 1);
+    // Small white-hot clouds hugging the void's edge: the burning
+    // inner rim that makes the dark heart read as a hole in fire.
+    buildRing(ringA, 12.5, [
+      ['rgba(255, 222, 160, 0.85)', 'rgba(255, 150, 80, 0.30)'],
+      ['rgba(255, 200, 130, 0.80)', 'rgba(230, 120, 60, 0.28)'],
+      ['rgba(255, 235, 190, 0.75)', 'rgba(255, 170, 90, 0.26)'],
+      ['rgba(255, 190, 110, 0.80)', 'rgba(220, 110, 50, 0.28)']
+    ], 0.55);
+    gxLayers.near.appendChild(ringA);
+
+    // --- Core layer: the void, the blazing star, the moon ---
+    var voidEl = document.createElement('div');
+    voidEl.className = 'gx-void';
+    gxLayers.core.appendChild(voidEl);
+    var sunglow = document.createElement('div');
+    sunglow.className = 'gx-sunglow';
+    gxLayers.core.appendChild(sunglow);
+    var sun = document.createElement('div');
+    sun.className = 'gx-sun';
+    gxLayers.core.appendChild(sun);
     var moon = document.createElement('div');
     moon.className = 'gx-moon';
     moon.textContent = '\u{1F319}';
-    galaxyEl.appendChild(moon);
+    gxLayers.core.appendChild(moon);
+
+    galaxyEl.appendChild(gxLayers.stars);
+    galaxyEl.appendChild(gxLayers.far);
+    galaxyEl.appendChild(gxLayers.near);
+    galaxyEl.appendChild(gxLayers.core);
 
     // The galaxy sits above the day scenery, below the bubbles.
     stage.insertBefore(galaxyEl, layer);
@@ -255,16 +362,114 @@
 
     cometTimer = window.setInterval(spawnComet, 6500);
     window.setTimeout(spawnComet, 2200);
+
+    startParallax();
   }
 
   function spawnComet() {
-    if (!galaxyEl) return;
+    if (!gxLayers) return;
     var comet = document.createElement('div');
     comet.className = 'gx-comet';
     comet.style.left = (30 + Math.random() * 60) + '%';
     comet.style.top = (5 + Math.random() * 35) + '%';
-    galaxyEl.appendChild(comet);
+    gxLayers.stars.appendChild(comet);
     window.setTimeout(function () { remove(comet); }, 1800);
+  }
+
+  /* ---------- Parallax: look around the galaxy ---------- */
+
+  function clampUnit(v) {
+    return Math.max(-1, Math.min(1, v));
+  }
+
+  function handleOrientation(e) {
+    if (e.beta == null || e.gamma == null) return;
+    parallax.hasSensor = true;
+
+    // Map device tilt into screen axes, accounting for landscape.
+    var angle = 0;
+    if (window.screen && window.screen.orientation &&
+        typeof window.screen.orientation.angle === 'number') {
+      angle = window.screen.orientation.angle;
+    } else if (typeof window.orientation === 'number') {
+      angle = window.orientation;
+    }
+    var sx, sy;
+    if (angle === 90)       { sx = e.beta;   sy = -e.gamma; }
+    else if (angle === -90 || angle === 270) { sx = -e.beta; sy = e.gamma; }
+    else if (angle === 180) { sx = -e.gamma; sy = -e.beta; }
+    else                    { sx = e.gamma;  sy = e.beta; }
+
+    // The angle the phone is held at right now is "center".
+    if (parallax.baseBeta === null) {
+      parallax.baseBeta = sy;
+      parallax.baseGamma = sx;
+    }
+    // Slowly re-center so an odd resting angle recovers over time.
+    parallax.baseGamma += (sx - parallax.baseGamma) * 0.002;
+    parallax.baseBeta += (sy - parallax.baseBeta) * 0.002;
+
+    parallax.tx = clampUnit((sx - parallax.baseGamma) / 22);
+    parallax.ty = clampUnit((sy - parallax.baseBeta) / 22);
+  }
+
+  function handlePointerParallax(e) {
+    if (parallax.hasSensor || !stage) return;   // real tilt wins
+    var rect = stage.getBoundingClientRect();
+    parallax.tx = clampUnit((e.clientX / rect.width - 0.5) * 1.6);
+    parallax.ty = clampUnit((e.clientY / rect.height - 0.5) * 1.6);
+  }
+
+  function startParallax() {
+    parallax.x = 0; parallax.y = 0;
+    parallax.tx = 0; parallax.ty = 0;
+    parallax.baseBeta = null; parallax.baseGamma = null;
+    parallax.hasSensor = false;
+
+    // iOS requires an explicit permission request from a user gesture —
+    // and the moon pop that opened the galaxy is exactly that gesture.
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(function (state) {
+          if (state === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        }).catch(function () { /* fall back to pointer parallax */ });
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    } catch (e) { /* fall back to pointer parallax */ }
+
+    stage.addEventListener('pointermove', handlePointerParallax);
+  }
+
+  function stopParallax() {
+    window.removeEventListener('deviceorientation', handleOrientation);
+    if (stage) stage.removeEventListener('pointermove', handlePointerParallax);
+  }
+
+  // Called every frame from tick() while the galaxy is up. Layers
+  // translate by different amounts — depth you can feel — plus a slow
+  // automatic drift so the sky feels dimensional even untouched.
+  function renderParallax(t) {
+    if (!gxLayers) return;
+    parallax.x += (parallax.tx - parallax.x) * 0.055;
+    parallax.y += (parallax.ty - parallax.y) * 0.055;
+
+    var driftX = Math.sin(t * 0.00006) * 0.18;
+    var driftY = Math.cos(t * 0.000043) * 0.14;
+    var px = parallax.x + driftX;
+    var py = parallax.y + driftY;
+
+    gxLayers.stars.style.transform =
+      'translate3d(' + (px * 8) + 'px,' + (py * 6) + 'px,0)';
+    gxLayers.far.style.transform =
+      'translate3d(' + (px * 20) + 'px,' + (py * 15) + 'px,0)';
+    gxLayers.near.style.transform =
+      'translate3d(' + (px * 36) + 'px,' + (py * 27) + 'px,0)';
+    gxLayers.core.style.transform =
+      'translate3d(' + (px * 52) + 'px,' + (py * 38) + 'px,0)';
   }
 
   function remove(node) {
@@ -287,6 +492,7 @@
         render(b, t);
       }
     }
+    if (galaxyOn) renderParallax(t);
     rafId = window.requestAnimationFrame(tick);
   }
 
@@ -322,11 +528,13 @@
     if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
     if (cometTimer) { window.clearInterval(cometTimer); cometTimer = null; }
     if (rafId) { window.cancelAnimationFrame(rafId); rafId = null; }
+    stopParallax();
     if (stage) stage.innerHTML = '';
     bubbles = [];
     stage = null;
     layer = null;
     galaxyEl = null;
+    gxLayers = null;
     galaxyOn = false;
   }
 

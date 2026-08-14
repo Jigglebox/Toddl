@@ -65,14 +65,20 @@ object: dog, cat, apple, moon, boat… Tap a bubble and it pops softly with a
 ripple and droplets; the object springs free with its written and spoken
 name.
 
-**The moon secret:** popping the moon bubble melts the day sky into a
-swirling galaxy night — two counter-rotating nebula arms, sixty twinkling
-stars, a glowing moon, and the occasional shooting star, with the bubbles
-still drifting through it. It's the one deliberately awe-scaled moment in
+**The moon secret:** popping the moon bubble melts the day sky into deep
+space — a fiery ring nebula (orange, crimson, gold, with teal and violet
+outer arms) swirling slowly around a dark void, a blazing cross-flare star
+at its heart, eighty twinkling stars, shooting stars, and the bubbles still
+drifting through it all. The sky is built from four parallax layers, and
+**tilting the phone looks around the galaxy**: the star field barely moves
+while the nebula and core sweep past at increasing depths, so the scene
+reads as real space behind the glass (iOS motion permission is requested
+from the very pop gesture that opens the night; a finger-drift fallback
+covers devices without a gyroscope, plus a slow automatic drift so it
+breathes even untouched). It's the one deliberately awe-scaled moment in
 the app: otherworldly, but still slow, dark, and quiet — mesmerizing rather
-than stimulating. Discovering it teaches that exploring is rewarded. The
-visit timer resets when it triggers so the night gets a full stretch of
-play, and the next visit to Bubbles dawns back to day.
+than stimulating. The visit timer resets when it triggers so the night gets
+a full stretch of play, and the next visit to Bubbles dawns back to day.
 
 - *Teaches:* object vocabulary, pointing/tapping precision, visual tracking,
   cause-and-effect.
