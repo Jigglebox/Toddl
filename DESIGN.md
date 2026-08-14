@@ -76,17 +76,9 @@ dissolving over eight, voices detuned a hair so they shimmer.
 Interstellar awe at lullaby volume; the music-box returns at dawn.
 
 **The moon secret:** popping the moon bubble opens a full **360° window
-into space** built from real James Webb Space Telescope photography
-(NASA/ESA/CSA/STScI, public domain). Four genuine deep-space vistas hang
-in the panorama: the Cosmic Cliffs of the Carina Nebula, the Tarantula
-Nebula star nursery, Stephan's Quintet of galaxies, and the Southern Ring
-Nebula — each color-graded to a violet/magenta base (saturation lift plus
-a luminance-preserving purple tint, so stars stay white-hot while the gas
-goes electric purple), with fades to pure black baked into the edges so
-they dissolve seamlessly into a painted field of ~900 stars, a milky band,
-twinkling overlay stars, and shooting stars. Photo blacks are
-screen-blended away, so the images float in space rather than sitting in
-rectangles.
+into space** built from real astrophotography, graded to the violet base
+of a classic galaxy wallpaper — stars stay white-hot while the gas goes
+deep purple, blue, and magenta with golden rims.
 
 **Real 3D depth, one designed scene.** The whole sky is a single
 continuous piece of real astrophotography (the North America / Pelican
