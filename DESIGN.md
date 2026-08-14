@@ -88,17 +88,19 @@ twinkling overlay stars, and shooting stars. Photo blacks are
 screen-blended away, so the images float in space rather than sitting in
 rectangles.
 
-**Real 3D depth.** The sky is seven parallax layers — Webb's First Deep
-Field (thousands of real galaxies) as the slow-crawling backdrop, a vast
-blurred nebula haze, the main nebula band, and crisp near wisps that sweep
-past fastest with a whisper of depth-of-field blur — plus three fields
-of glowing star dust closer than everything (parallax rates 1.4/1.65/
-1.95), the nearest rendered as soft out-of-focus bokeh motes drifting
-right by the glass. Every layer pans at its own rate as the view moves,
-and the whole stack slowly breathes on a 46-second cycle (near layers
-zooming more than far) so it feels like gently traveling through the
-dust, not looking at a picture on a wall. All of it is photographic — nothing in the night sky is
-runtime-generated except twinkle sparkles and shooting stars.
+**Real 3D depth, one designed scene.** The whole sky is a single
+continuous piece of real astrophotography (the North America / Pelican
+Nebula, ~5300px source), graded to a violet base and mirror-tiled into a
+seamless 360° — every pixel of the sphere is nebula, no gaps and no
+collaged fragments. Depth comes from the scene itself: its own brightest
+gas is extracted (luminance→alpha) and floats in front, larger and
+half-a-sky offset, at a faster parallax rate — identical material at two
+depths, so it reads as one dimensional place. Three fields of glowing
+star dust drift closer still (rates 1.45/1.7/2.0), the nearest as soft
+out-of-focus bokeh, and the whole stack breathes on a 46-second cycle
+like a slow dolly through the dust. The Orion Nebula hangs somewhere in
+the sphere as a single magenta heart — a landmark to discover by turning
+around. Only twinkle sparkles and shooting stars are runtime-generated.
 
 **Turning the phone actually looks around the sphere.** Device orientation
 is converted to a true view direction (rotation matrix → azimuth +

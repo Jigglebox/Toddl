@@ -57,12 +57,10 @@ to open settings (toggle gentle sounds and spoken words).
 
 ## Imagery credit
 
-The galaxy night scene uses real James Webb Space Telescope photographs —
-Carina Nebula ("Cosmic Cliffs"), Tarantula Nebula, Stephan's Quintet, and
-the Southern Ring Nebula — courtesy of NASA/ESA/CSA/STScI (public domain),
-color-graded for the app. Sourced via the
-[WebbCompare](https://github.com/JohnEdChristensen/WebbCompare) mirror of
-the official STScI releases.
+The galaxy night scene is built from real astrophotography: the North
+America / Pelican Nebula (the full-sky scene) and the Orion Nebula (the
+hidden landmark), both by aldebaran-s on Unsplash (Unsplash license),
+color-graded to a violet base for the app. This is a personal-use build.
 
 ## Tech
 

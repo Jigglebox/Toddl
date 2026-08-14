@@ -354,109 +354,57 @@
 
     var W = pano.dispW, H = pano.dispH;
 
-    // --- Layer 0 (deepest): Webb's First Deep Field — thousands of
-    // real galaxies as the backdrop, mirror-tiled for a seamless wrap,
-    // crawling slowest of all ---
-    var dfw = Math.round(H * (1568 / 1600));
-    var starsLayer = makeLayer(0.72, dfw * 2);
-    var dfTiles = Math.ceil((dfw * 2 + rect.width) / dfw) + 1;
-    for (var di = 0; di < dfTiles; di++) {
-      var df = addImg(starsLayer, 'deepfield.jpg', di * dfw, 0, dfw,
-        { flip: di % 2 === 1 });
-      df.style.height = H + 'px';
+    // --- The sky is ONE continuous scene (North America Nebula,
+    // real astrophotography), mirror-tiled for a seamless 360°.
+    // It fills every pixel — no gaps, no collage. ---
+    var sceneW = Math.round(H * (2671 / 2000));
+    var sceneLayer = makeLayer(0.85, sceneW * 2);
+    var sceneTiles = Math.ceil((sceneW * 2 + rect.width) / sceneW) + 1;
+    for (var si = 0; si < sceneTiles; si++) {
+      var sImg = addImg(sceneLayer, 'scene.webp', si * sceneW, 0, sceneW,
+        { flip: si % 2 === 1 });
+      sImg.style.height = H + 'px';
     }
 
-    // --- Layer 1: vast blurred nebula haze filling the whole sphere.
-    // Mirror-tiled (A, flipped A, A, …) at natural aspect; its wrap
-    // period is one mirror pair. ---
-    var hw = Math.round(H * (2048 / 1440));
-    var hazeLayer = makeLayer(0.85, hw * 2);
-    var hazeTiles = Math.ceil((hw * 2 + rect.width) / hw) + 1;
-    for (var hi = 0; hi < hazeTiles; hi++) {
-      addImg(hazeLayer, 'haze.webp', hi * hw, 0, hw, { flip: hi % 2 === 1 })
-        .style.height = H + 'px';
-    }
-
-    // --- Layer 2: the main nebula band — the four JWST vistas plus
-    // bridging wisps between them, one continuous cloud complex ---
-    var midLayer = makeLayer(1.0, W);
-    pano.midLayer = midLayer;
-    var photos = [
-      { file: 'carina.webp',    at: 0.125, h: 0.42, aspect: 2589 / 1500 },
-      { file: 'tarantula.webp', at: 0.375, h: 0.44, aspect: 2593 / 1500 },
-      { file: 'quintet.webp',   at: 0.625, h: 0.36, aspect: 1461 / 1400 },
-      { file: 'ring.webp',      at: 0.875, h: 0.33, aspect: 1396 / 1300 }
-    ];
-    var bridges = [
-      { file: 'wisp-b.webp', at: 0.0,   h: 0.26, aspect: 760 / 537, flip: true,  rot: 8,   dy: -0.06 },
-      { file: 'wisp-a.webp', at: 0.25,  h: 0.28, aspect: 760 / 524, flip: false, rot: -6,  dy: 0.05 },
-      { file: 'wisp-b.webp', at: 0.5,   h: 0.27, aspect: 760 / 537, flip: false, rot: 174, dy: 0.04 },
-      { file: 'wisp-a.webp', at: 0.75,  h: 0.26, aspect: 760 / 524, flip: true,  rot: 186, dy: -0.05 },
-      // vertical reach: wisps above and below the band
-      { file: 'wisp-c.webp', at: 0.18,  h: 0.2,  aspect: 760 / 766, flip: false, rot: 24,  dy: -0.3 },
-      { file: 'wisp-d.webp', at: 0.55,  h: 0.2,  aspect: 760 / 705, flip: true,  rot: -18, dy: 0.3 },
-      { file: 'wisp-d.webp', at: 0.3,   h: 0.18, aspect: 760 / 705, flip: false, rot: 150, dy: 0.28 },
-      { file: 'wisp-c.webp', at: 0.8,   h: 0.19, aspect: 760 / 766, flip: true,  rot: -140, dy: -0.28 }
-    ];
-    function placeMid(spec, shift) {
-      var h = H * spec.h;
-      var w = h * spec.aspect;
-      var cy = H * (0.5 + (spec.dy || 0));
-      var img = addImg(midLayer, spec.file,
-        W * spec.at - w / 2 + shift, cy - h / 2, w,
-        { flip: spec.flip, rot: spec.rot });
-      img.style.height = h + 'px';
-    }
-    for (var pi = 0; pi < photos.length; pi++) {
-      placeMid(photos[pi], 0);
-      placeMid(photos[pi], W);
-    }
-    for (var bi2 = 0; bi2 < bridges.length; bi2++) {
-      placeMid(bridges[bi2], 0);
-      placeMid(bridges[bi2], W);
-    }
-
-    // moon + twinkling stars ride the mid layer
-    var moon = addOverlay(midLayer, 'gx-moon', W * 0.125 + rect.width * 0.34,
-      H * 0.30);
+    // moon + twinkling stars ride the scene
+    var moon = addOverlay(sceneLayer, 'gx-moon', sceneW * 0.5, H * 0.22);
     moon.textContent = '\u{1F319}';
-    for (var i = 0; i < 34; i++) {
-      var tx = Math.random() * W;
+    for (var i = 0; i < 30; i++) {
+      var tx = Math.random() * sceneW * 2;
       var ty = Math.random() * H;
-      makeTwinkle(midLayer, tx, ty);
-      makeTwinkle(midLayer, tx + W, ty);
+      makeTwinkle(sceneLayer, tx, ty);
+      makeTwinkle(sceneLayer, tx + sceneW * 2, ty);
     }
 
-    // --- Layer 3 (nearest): crisp wisps that sweep past fastest —
-    // the "you could touch it" layer ---
-    var nearLayer = makeLayer(1.18, W);
-    var nears = [
-      { file: 'wisp-a.webp', at: 0.06, h: 0.34, aspect: 760 / 524, flip: false, rot: -10, dy: 0.18 },
-      { file: 'wisp-b.webp', at: 0.32, h: 0.36, aspect: 760 / 537, flip: true,  rot: 12,  dy: -0.16 },
-      { file: 'wisp-c.webp', at: 0.56, h: 0.3,  aspect: 760 / 766, flip: false, rot: -20, dy: 0.2 },
-      { file: 'wisp-a.webp', at: 0.7,  h: 0.32, aspect: 760 / 524, flip: true,  rot: 168, dy: -0.2 },
-      { file: 'wisp-d.webp', at: 0.9,  h: 0.3,  aspect: 760 / 705, flip: false, rot: 14,  dy: 0.16 }
-    ];
-    function placeNear(spec, shift) {
-      var h = H * spec.h;
-      var w = h * spec.aspect;
-      var cy = H * (0.5 + spec.dy);
-      var img = addImg(nearLayer, spec.file,
-        W * spec.at - w / 2 + shift, cy - h / 2, w,
-        { flip: spec.flip, rot: spec.rot });
-      img.style.height = h + 'px';
-      img.classList.add('gx-near');
+    // --- The same scene's brightest gas floats in front at its own
+    // parallax rate: bigger, translucent, half-a-sky offset so its
+    // clouds drift over different parts of the backdrop. Identical
+    // material at two depths — cohesive, dimensional. ---
+    var glowH = Math.round(H * 1.35);
+    var glowW = Math.round(glowH * (1736 / 1300));
+    var glowLayer = makeLayer(1.12, glowW * 2);
+    var glowTiles = Math.ceil((glowW * 2 + rect.width) / glowW) + 1;
+    for (var gi = 0; gi < glowTiles; gi++) {
+      var gImg = addImg(glowLayer, 'sceneglow.webp',
+        gi * glowW + glowW * 0.5, Math.round((H - glowH) / 2), glowW,
+        { flip: gi % 2 === 1 });
+      gImg.style.height = glowH + 'px';
     }
-    for (var ni = 0; ni < nears.length; ni++) {
-      placeNear(nears[ni], 0);
-      placeNear(nears[ni], W);
+    // Orion: a single magenta heart hidden in the sky — find it by
+    // turning around. One landmark, placed once per wrap.
+    var orionH = Math.round(H * 0.52);
+    for (var oi = 0; oi < 2; oi++) {
+      var oImg = addImg(glowLayer, 'orion.webp',
+        glowW * 2 * 0.31 + oi * glowW * 2, H * 0.16, Math.round(orionH * (1098 / 1100)),
+        {});
+      oImg.style.height = orionH + 'px';
     }
 
     // --- Dust fields: star motes closer than everything, at three
     // depths; the closest is soft bokeh drifting right by the window ---
-    makeDustLayer(1.4, 70, 0.8, 2.2, 0, H, rect.width);
-    makeDustLayer(1.65, 50, 1.2, 3.2, 1, H, rect.width);
-    makeDustLayer(1.95, 32, 2.2, 5.5, 2.5, H, rect.width);
+    makeDustLayer(1.45, 70, 0.8, 2.2, 0, H, rect.width);
+    makeDustLayer(1.7, 50, 1.2, 3.2, 1, H, rect.width);
+    makeDustLayer(2.0, 32, 2.2, 5.5, 2.5, H, rect.width);
 
     for (var li = 0; li < pano.layers.length; li++) {
       galaxyEl.appendChild(pano.layers[li].el);
@@ -663,9 +611,7 @@
     bubbles = [];
     lastTime = 0;
     popCount = 0;
-    ['carina.webp', 'tarantula.webp', 'quintet.webp', 'ring.webp',
-     'haze.webp', 'wisp-a.webp', 'wisp-b.webp', 'wisp-c.webp',
-     'wisp-d.webp', 'deepfield.jpg'].forEach(function (name) {
+    ['scene.webp', 'sceneglow.webp', 'orion.webp'].forEach(function (name) {
       new Image().src = 'img/galaxy/' + name;
     });
     spawnBubble(0.12);
