@@ -1,0 +1,14 @@
+{
+  "appId": "com.jigglebox.toddl",
+  "appName": "Toddl",
+  "webDir": "www",
+  "backgroundColor": "#faf6ef",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#faf6ef"
+  },
+  "android": {
+    "backgroundColor": "#faf6ef",
+    "allowMixedContent": false
+  }
+}

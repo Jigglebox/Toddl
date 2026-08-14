@@ -1,7 +1,7 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v1';
+var CACHE = 'toddl-v2';
 var ASSETS = [
   '.',
   'index.html',
@@ -13,6 +13,8 @@ var ASSETS = [
   'js/garden.js',
   'js/main.js',
   'icons/icon.svg',
+  'icons/icon-192.webp',
+  'icons/icon-512.webp',
   'manifest.webmanifest'
 ];
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Toddl</string>
+    <string name="title_activity_main">Toddl</string>
+    <string name="package_name">com.jigglebox.toddl</string>
+    <string name="custom_url_scheme">com.jigglebox.toddl</string>
+</resources>
