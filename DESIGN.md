@@ -50,7 +50,9 @@ every single thing that happens on screen — not from spectacle.
     timer rotates play anyway, so there is *always* something new to do
     with no menu and no parent needed. Inter-round pauses are short
     (~1.6s) so the screen is never idle. The home screen still allows
-    jumping straight to any activity.
+    jumping straight to any activity, and the grown-ups panel has
+    per-game rotation toggles so parents can drop any game the child
+    isn't enjoying (with a safe fallback if everything is switched off).
 11. **Landscape, on a lap.** Toddlers don't hold phones; they set them
     down. The native apps lock to landscape, the PWA manifest requests
     it, and in a portrait browser a calm "turn me sideways" screen shows
@@ -153,7 +155,16 @@ spoken words) and a note encouraging co-play. Settings persist in
 ## Toddler-proofing
 
 - Pinch-zoom, double-tap zoom, long-press menus, scrolling and text
-  selection are all suppressed.
+  selection are all suppressed, and every raw touch gesture is swallowed
+  at the document level so a resting palm can't scroll or rubber-band.
+- Drags listen only to the *first* finger down (`isPrimary`) — extra
+  fingers brushing the screen can't hijack a shape or ball mid-drag.
+- OS edge gestures are blunted natively: iOS defers all screen-edge
+  system gestures (an edge swipe shows only a grabber and needs a second
+  deliberate swipe — enough to stop Notification Center pulls and
+  accidental app exits), and Android runs sticky-immersive with system
+  bars hidden. For a fully locked session, the grown-ups panel points
+  parents to Guided Access (iOS) / app pinning (Android).
 - `display: fullscreen` PWA manifest; parents can add to home screen and use
   the OS's Guided Access / app pinning for full lockdown.
 - The home button on game screens is small and corner-placed so accidental

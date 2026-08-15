@@ -125,7 +125,8 @@
       bowls.push({ color: color, el: el, x: x, y: bowlY + bowlWidth * 0.18, width: bowlWidth });
     });
 
-    var ballSize = Math.max(64, Math.min(rect.width, rect.height) * 0.14);
+    // Big, grabbable balls: toddler fingers need real estate.
+    var ballSize = Math.max(96, Math.min(rect.width, rect.height) * 0.26);
     var spots = [];
     pair.forEach(function (color) {
       for (var i = 0; i < ITEMS_PER_COLOR; i++) spots.push(color);
@@ -168,7 +169,7 @@
     var offsetX = 0, offsetY = 0;
 
     el.addEventListener('pointerdown', function (e) {
-      if (item.sorted) return;
+      if (item.sorted || !e.isPrimary) return;
       e.preventDefault();
       dragging = true;
       el.setPointerCapture(e.pointerId);
@@ -181,7 +182,7 @@
     });
 
     el.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
+      if (!dragging || !e.isPrimary) return;
       var rect = stage.getBoundingClientRect();
       el.style.left = ((e.clientX - rect.left) - offsetX) + 'px';
       el.style.top = ((e.clientY - rect.top) - offsetY) + 'px';

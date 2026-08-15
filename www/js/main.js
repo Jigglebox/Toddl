@@ -17,6 +17,23 @@
   // The order games flow through when the child just keeps playing.
   var GAME_ORDER = ['bubbles', 'shapes', 'colors', 'garden'];
 
+  // Parents can drop games from the rotation (grown-ups panel).
+  var rotation = { bubbles: true, shapes: true, colors: true, garden: true };
+  try {
+    var savedRotation = JSON.parse(localStorage.getItem('toddl-rotation'));
+    if (savedRotation) {
+      GAME_ORDER.forEach(function (g) {
+        if (typeof savedRotation[g] === 'boolean') rotation[g] = savedRotation[g];
+      });
+    }
+  } catch (e) { /* defaults are fine */ }
+
+  function saveRotation() {
+    try {
+      localStorage.setItem('toddl-rotation', JSON.stringify(rotation));
+    } catch (e) { /* private mode */ }
+  }
+
   // No visit ever outstays its welcome: even if the child just pokes
   // around without finishing anything, the next activity arrives.
   var VISIT_MS = 70000;
@@ -86,8 +103,16 @@
     next: function () {
       if (!activeGame) return;
       var idx = GAME_ORDER.indexOf(activeGame);
-      var nextName = GAME_ORDER[(idx + 1) % GAME_ORDER.length];
-      openGame(nextName, true);
+      // Walk forward to the next game the parents left in the rotation.
+      // If everything is switched off, fall back to the full rotation.
+      for (var step = 1; step <= GAME_ORDER.length; step++) {
+        var candidate = GAME_ORDER[(idx + step) % GAME_ORDER.length];
+        if (rotation[candidate]) {
+          openGame(candidate, true);
+          return;
+        }
+      }
+      openGame(GAME_ORDER[(idx + 1) % GAME_ORDER.length], true);
     },
     // A game can ask for more time when something special is happening
     // (e.g. the galaxy sky) so the moment isn't cut short.
@@ -152,6 +177,9 @@
     syncToggle('toggle-sound', ToddlAudio.getSetting('sound'));
     syncToggle('toggle-voice', ToddlAudio.getSetting('voice'));
     syncToggle('toggle-music', ToddlAudio.getSetting('music'));
+    GAME_ORDER.forEach(function (g) {
+      syncToggle('toggle-game-' + g, rotation[g]);
+    });
     showScreen('screen-parents');
   }
 
@@ -173,6 +201,16 @@
   wireToggle('toggle-voice', 'voice');
   wireToggle('toggle-music', 'music');
 
+  GAME_ORDER.forEach(function (g) {
+    var el = document.getElementById('toggle-game-' + g);
+    el.addEventListener('click', function () {
+      var next = el.getAttribute('aria-checked') !== 'true';
+      el.setAttribute('aria-checked', next ? 'true' : 'false');
+      rotation[g] = next;
+      saveRotation();
+    });
+  });
+
   document.getElementById('btn-parents-done').addEventListener('click', goHome);
 
   /* ---------- Toddler-proofing ---------- */
@@ -181,6 +219,14 @@
   document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
   document.addEventListener('dblclick', function (e) { e.preventDefault(); });
+
+  // Toddlers rest extra fingers and palms on the glass. Swallow every
+  // raw touch gesture at the document level (passive: false) so a
+  // second finger can never scroll, rubber-band, or feed Safari a
+  // navigation gesture — pointer events for the games still fire.
+  document.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+  }, { passive: false });
 
   /* ---------- Device motion service ----------
      One app-wide gyroscope reader. iOS only grants motion access when

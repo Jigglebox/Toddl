@@ -136,7 +136,7 @@
     var offsetX = 0, offsetY = 0;
 
     el.addEventListener('pointerdown', function (e) {
-      if (entry.placed) return;
+      if (entry.placed || !e.isPrimary) return;
       e.preventDefault();
       dragging = true;
       el.setPointerCapture(e.pointerId);
@@ -150,7 +150,7 @@
     });
 
     el.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
+      if (!dragging || !e.isPrimary) return;
       var rect = board.getBoundingClientRect();
       var x = (e.clientX - rect.left) - offsetX;
       var y = (e.clientY - rect.top) - offsetY;

@@ -375,6 +375,16 @@ button {
 
 .parents-tip { margin-top: 8px; }
 
+.parents-subhead {
+  font-size: 1.05rem;
+  margin: 18px 0 4px;
+}
+
+.parents-note-small {
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
 .setting-row {
   display: flex;
   align-items: center;
