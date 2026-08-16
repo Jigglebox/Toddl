@@ -50,11 +50,17 @@ body {
     "Quicksand", system-ui, sans-serif;
   background: var(--cream);
   color: var(--ink);
-  touch-action: none;              /* the app handles all gestures itself */
   user-select: none;
   -webkit-user-select: none;
   position: fixed;
   inset: 0;
+}
+
+/* The app handles all gestures itself. Even the grown-ups panel
+   scrolls through our own pointer-drag code (below in main.js), so
+   no native pan heuristics are involved anywhere. */
+.screen, #rotate-hint {
+  touch-action: none;
 }
 
 button {
@@ -357,8 +363,13 @@ button {
   padding: 28px;
   max-width: 420px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 88vh;
   overflow-y: auto;
+  /* The body disables touch gestures app-wide; this panel is the one
+     place a grown-up needs to scroll. */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .parents-panel h2 {

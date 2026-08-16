@@ -213,6 +213,67 @@
 
   document.getElementById('btn-parents-done').addEventListener('click', goHome);
 
+  /* ---------- Grown-ups panel scrolling ----------
+     The whole app suppresses native touch gestures, so the panel
+     scrolls through its own pointer-drag code — deterministic on
+     every device. Taps still click; real drags scroll and swallow
+     the accidental click that would fire on release. */
+
+  (function () {
+    var panel = document.querySelector('.parents-panel');
+    if (!panel) return;
+    var tracking = false;
+    var lastY = 0;
+    var moved = 0;
+
+    panel.addEventListener('pointerdown', function (e) {
+      if (!e.isPrimary) return;
+      tracking = true;
+      lastY = e.clientY;
+      moved = 0;
+    });
+
+    panel.addEventListener('pointermove', function (e) {
+      if (!tracking || !e.isPrimary) return;
+      var dy = e.clientY - lastY;
+      lastY = e.clientY;
+      moved += Math.abs(dy);
+      panel.scrollTop -= dy;
+      // Once this is clearly a drag, capture the pointer so one long
+      // swipe keeps scrolling beyond the panel's edge. Capturing only
+      // after movement means plain taps still click buttons normally
+      // (capture would steal pointerup from them).
+      if (moved > 8 && !panel.hasPointerCapture(e.pointerId)) {
+        try { panel.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
+      }
+    });
+
+    var dragEndAt = 0;
+    function endScroll() {
+      if (tracking && moved > 12) dragEndAt = Date.now();
+      tracking = false;
+    }
+    panel.addEventListener('pointerup', endScroll);
+    panel.addEventListener('pointercancel', endScroll);
+
+    // A drag that scrolled shouldn't also flip whatever toggle the
+    // finger happened to lift from — swallow only the click that
+    // immediately follows the drag, never a later deliberate tap.
+    panel.addEventListener('click', function (e) {
+      if (Date.now() - dragEndAt < 400) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      moved = 0;
+    }, true);
+
+    // Desktop nicety: the wheel scrolls too.
+    panel.addEventListener('wheel', function (e) {
+      panel.scrollTop += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  })();
+
   /* ---------- Toddler-proofing ---------- */
 
   // Block long-press context menus, double-tap zoom, and pinch zoom.
@@ -224,7 +285,11 @@
   // raw touch gesture at the document level (passive: false) so a
   // second finger can never scroll, rubber-band, or feed Safari a
   // navigation gesture — pointer events for the games still fire.
+  // The one legitimate scroller is the grown-ups panel: touches that
+  // start inside it keep their native scroll.
   document.addEventListener('touchmove', function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest('.parents-panel')) return;
     e.preventDefault();
   }, { passive: false });
 
