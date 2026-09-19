@@ -130,6 +130,33 @@
 
   /* ---------- Dragging ---------- */
 
+  // A shape settling home: snap in, bright golden flash, chime.
+  function placeEntry(entry) {
+    var el = entry.pieceEl;
+    entry.placed = true;
+    el.classList.remove('is-dragging');
+    el.classList.add('is-snapping', 'is-placed');
+    el.style.left = entry.slotX + 'px';
+    el.style.top = entry.slotY + 'px';
+    entry.slotEl.classList.remove('is-near');
+    entry.slotEl.classList.add('is-filled');
+
+    // A bright, unmissable "you did it" flash at the slot.
+    var flash = document.createElement('div');
+    flash.className = 'place-flash';
+    flash.style.width = (entry.size * 1.6) + 'px';
+    flash.style.height = (entry.size * 1.6) + 'px';
+    flash.style.left = entry.slotX + 'px';
+    flash.style.top = entry.slotY + 'px';
+    board.appendChild(flash);
+    window.setTimeout(function () {
+      if (flash.parentNode) flash.parentNode.removeChild(flash);
+    }, 800);
+
+    ToddlAudio.place();
+    checkRound();
+  }
+
   function attachDrag(entry) {
     var el = entry.pieceEl;
     var dragging = false;
@@ -150,18 +177,28 @@
     });
 
     el.addEventListener('pointermove', function (e) {
-      if (!dragging || !e.isPrimary) return;
+      if (!dragging || !e.isPrimary || entry.placed) return;
       var rect = board.getBoundingClientRect();
       var x = (e.clientX - rect.left) - offsetX;
       var y = (e.clientY - rect.top) - offsetY;
       el.style.left = x + 'px';
       el.style.top = y + 'px';
 
-      // The matching outline beckons softly as the shape gets close.
       var dx = x - entry.slotX;
       var dy = y - entry.slotY;
-      var near = Math.sqrt(dx * dx + dy * dy) < entry.size * 0.9;
-      entry.slotEl.classList.toggle('is-near', near);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Magnet: close enough is done — the outline sucks the shape in
+      // mid-drag, no precise drop required.
+      if (dist < entry.size * 0.7) {
+        dragging = false;
+        try { el.releasePointerCapture(e.pointerId); } catch (err) { /* ok */ }
+        placeEntry(entry);
+        return;
+      }
+
+      // The matching outline beckons brightly as the shape gets close.
+      entry.slotEl.classList.toggle('is-near', dist < entry.size * 1.2);
     });
 
     function release() {
@@ -169,21 +206,16 @@
       dragging = false;
       el.classList.remove('is-dragging');
       entry.slotEl.classList.remove('is-near');
+      if (entry.placed) return;
 
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
       var dx = x - entry.slotX;
       var dy = y - entry.slotY;
-      var snapRadius = entry.size * 0.55;   // generous for small hands
+      var snapRadius = entry.size * 0.9;   // very generous for small hands
 
       if (Math.sqrt(dx * dx + dy * dy) < snapRadius) {
-        entry.placed = true;
-        el.classList.add('is-snapping', 'is-placed');
-        el.style.left = entry.slotX + 'px';
-        el.style.top = entry.slotY + 'px';
-        entry.slotEl.classList.add('is-filled');
-        ToddlAudio.place();
-        checkRound();
+        placeEntry(entry);
       } else {
         // Not home yet: drift gently back. No penalty, no harsh sound.
         el.classList.add('is-returning');

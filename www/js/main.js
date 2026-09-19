@@ -137,7 +137,7 @@
   var cards = document.querySelectorAll('.game-card');
   for (var i = 0; i < cards.length; i++) {
     (function (card) {
-      card.addEventListener('click', function () {
+      onTap(card, function () {
         ToddlAudio.unlock();
         ToddlAudio.tap();
         openGame(card.getAttribute('data-game'));
@@ -145,7 +145,26 @@
     })(cards[i]);
   }
 
-  btnHome.addEventListener('click', goHome);
+  // Buttons must not depend on synthesized clicks: with the global
+  // touch-gesture swallow, iOS drops the click when a tapping finger
+  // wobbles a few pixels — which silently killed the home button.
+  // pointerup always fires; click stays as a desktop fallback behind
+  // a duplicate guard.
+  function onTap(el, fn) {
+    var last = 0;
+    function fire(e) {
+      var now = Date.now();
+      if (now - last < 500) return;
+      last = now;
+      fn(e);
+    }
+    el.addEventListener('pointerup', function (e) {
+      if (e.isPrimary) fire(e);
+    });
+    el.addEventListener('click', fire);
+  }
+
+  onTap(btnHome, goHome);
 
   /* ---------- Grown-ups gate (press and hold 2 seconds) ----------
      A toddler taps; only a grown-up will read "hold" and keep a
@@ -211,7 +230,7 @@
     });
   });
 
-  document.getElementById('btn-parents-done').addEventListener('click', goHome);
+  onTap(document.getElementById('btn-parents-done'), goHome);
 
   /* ---------- Grown-ups panel scrolling ----------
      The whole app suppresses native touch gestures, so the panel
