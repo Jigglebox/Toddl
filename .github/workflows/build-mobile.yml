@@ -9,6 +9,8 @@ jobs:
   android:
     name: Android (APK + AAB)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # lets the job update the rolling "latest" release
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +44,30 @@ jobs:
         with:
           name: toddl-android-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
+
+      # A phone-friendly, stable download link:
+      #   https://github.com/Jigglebox/Toddl/releases/latest/download/toddl.apk
+      - name: Stage phone-installable APK
+        if: github.ref == 'refs/heads/claude/toddl-mobile-game-design-ql5au9'
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk toddl.apk
+
+      - name: Publish APK to the rolling "latest" release
+        if: github.ref == 'refs/heads/claude/toddl-mobile-game-design-ql5au9'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Toddl — latest build
+          body: |
+            Always the newest build of Toddl.
+
+            **Install on Android:** open this page on the phone, download
+            `toddl.apk` below, and tap it. Allow "install unknown apps"
+            for your browser when asked (one-time).
+
+            **Install on iPhone:** open https://jigglebox.github.io/Toddl/
+            in Safari, tap Share → Add to Home Screen. It runs fullscreen
+            and offline like a native app.
+          files: toddl.apk
 
   ios:
     name: iOS (build validation)
