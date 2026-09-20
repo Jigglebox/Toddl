@@ -166,7 +166,7 @@
       if (entry.placed || !e.isPrimary) return;
       e.preventDefault();
       dragging = true;
-      el.setPointerCapture(e.pointerId);
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
       el.classList.remove('is-returning', 'is-snapping');
       el.classList.add('is-dragging');
       var rect = board.getBoundingClientRect();

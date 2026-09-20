@@ -128,7 +128,10 @@ the shape's name is spoken.
 ### 3. Colors — first sorting work
 Two bowls in different muted colors, six matching balls scattered above.
 The child drags each ball into the same-colored bowl, where it settles in
-with the color spoken aloud.
+with the color spoken aloud. Like the shape puzzle, the right bowl is
+magnetic: it glows and beckons as the ball nears, sucks it in mid-drag
+once it's close enough (no precise drop required), and celebrates with
+the same bright golden flash.
 
 - *Teaches:* color matching and names, categorization (the classic first
   Montessori sorting exercise: two categories, one isolated property —

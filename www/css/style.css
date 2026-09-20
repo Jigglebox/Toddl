@@ -1013,6 +1013,21 @@ button {
   animation: bowl-wobble 0.7s var(--ease-spring);
 }
 
+/* The right bowl beckons brightly as its ball approaches. */
+.color-bowl.is-near svg {
+  filter: drop-shadow(0 0 14px rgba(255, 196, 80, 0.95))
+          drop-shadow(0 0 30px rgba(255, 180, 60, 0.55));
+}
+
+.color-bowl.is-near {
+  animation: bowl-beckon 1.2s ease-in-out infinite;
+}
+
+@keyframes bowl-beckon {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.05); }
+}
+
 @keyframes bowl-wobble {
   0%   { transform: translateX(-50%) rotate(0deg) scale(1); }
   30%  { transform: translateX(-50%) rotate(-2.5deg) scale(1.04, 0.97); }

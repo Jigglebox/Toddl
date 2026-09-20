@@ -163,6 +163,42 @@
     return null;
   }
 
+  function matchingBowl(item) {
+    for (var i = 0; i < bowls.length; i++) {
+      if (bowls[i].color.name === item.color.name) return bowls[i];
+    }
+    return null;
+  }
+
+  // A ball settling into its bowl: sink in, happy wobble,
+  // bright golden flash — same celebration as the shape puzzle.
+  function sinkItem(item, bowl) {
+    var el = item.el;
+    item.sorted = true;
+    el.classList.remove('is-dragging');
+    el.classList.add('is-sinking');
+    el.style.left = bowl.x + 'px';
+    el.style.top = (bowl.y + item.size * 0.1) + 'px';
+    bowl.el.classList.remove('is-near', 'is-catching');
+    void bowl.el.offsetWidth;         // restart the animation
+    bowl.el.classList.add('is-catching');
+
+    var flash = document.createElement('div');
+    flash.className = 'place-flash';
+    flash.style.width = bowl.width + 'px';
+    flash.style.height = bowl.width + 'px';
+    flash.style.left = bowl.x + 'px';
+    flash.style.top = bowl.y + 'px';
+    layer.appendChild(flash);
+    window.setTimeout(function () {
+      if (flash.parentNode) flash.parentNode.removeChild(flash);
+    }, 800);
+
+    ToddlAudio.place();
+    ToddlAudio.say(item.color.name);
+    checkRound();
+  }
+
   function attachDrag(item) {
     var el = item.el;
     var dragging = false;
@@ -172,7 +208,7 @@
       if (item.sorted || !e.isPrimary) return;
       e.preventDefault();
       dragging = true;
-      el.setPointerCapture(e.pointerId);
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
       el.classList.remove('is-returning');
       el.classList.add('is-dragging');
       var rect = stage.getBoundingClientRect();
@@ -182,33 +218,46 @@
     });
 
     el.addEventListener('pointermove', function (e) {
-      if (!dragging || !e.isPrimary) return;
+      if (!dragging || !e.isPrimary || item.sorted) return;
       var rect = stage.getBoundingClientRect();
-      el.style.left = ((e.clientX - rect.left) - offsetX) + 'px';
-      el.style.top = ((e.clientY - rect.top) - offsetY) + 'px';
+      var x = (e.clientX - rect.left) - offsetX;
+      var y = (e.clientY - rect.top) - offsetY;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+
+      var bowl = matchingBowl(item);
+      if (!bowl) return;
+      var dx = x - bowl.x;
+      var dy = y - bowl.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Magnet: close enough is done — the right bowl sucks the
+      // ball in mid-drag, no precise drop required.
+      if (dist < bowl.width * 0.45) {
+        dragging = false;
+        try { el.releasePointerCapture(e.pointerId); } catch (err) { /* ok */ }
+        sinkItem(item, bowl);
+        return;
+      }
+
+      // The matching bowl beckons brightly as the ball gets close.
+      bowl.el.classList.toggle('is-near', dist < bowl.width * 0.8);
     });
 
     function release() {
       if (!dragging) return;
       dragging = false;
       el.classList.remove('is-dragging');
+      var match = matchingBowl(item);
+      if (match) match.el.classList.remove('is-near');
+      if (item.sorted) return;
 
       var x = parseFloat(el.style.left);
       var y = parseFloat(el.style.top);
       var bowl = bowlAt(x, y);
 
       if (bowl && bowl.color.name === item.color.name) {
-        item.sorted = true;
-        el.classList.add('is-sinking');
-        el.style.left = bowl.x + 'px';
-        el.style.top = (bowl.y + item.size * 0.1) + 'px';
-        // The bowl wobbles happily as it catches the ball.
-        bowl.el.classList.remove('is-catching');
-        void bowl.el.offsetWidth;         // restart the animation
-        bowl.el.classList.add('is-catching');
-        ToddlAudio.place();
-        ToddlAudio.say(item.color.name);
-        checkRound();
+        sinkItem(item, bowl);
       } else {
         el.classList.add('is-returning');
         el.style.left = item.homeX + 'px';
