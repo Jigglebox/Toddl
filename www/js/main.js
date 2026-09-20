@@ -11,14 +11,16 @@
     bubbles: { module: function () { return window.ToddlBubbles; }, stage: 'stage-bubbles' },
     shapes:  { module: function () { return window.ToddlShapes; },  stage: 'stage-shapes' },
     colors:  { module: function () { return window.ToddlColors; },  stage: 'stage-colors' },
-    garden:  { module: function () { return window.ToddlGarden; },  stage: 'stage-garden' }
+    garden:  { module: function () { return window.ToddlGarden; },  stage: 'stage-garden' },
+    piano:   { module: function () { return window.ToddlPiano; },   stage: 'stage-piano' }
   };
 
   // The order games flow through when the child just keeps playing.
-  var GAME_ORDER = ['bubbles', 'shapes', 'colors', 'garden'];
+  var GAME_ORDER = ['bubbles', 'shapes', 'colors', 'garden', 'piano'];
 
   // Parents can drop games from the rotation (grown-ups panel).
-  var rotation = { bubbles: true, shapes: true, colors: true, garden: true };
+  var rotation = { bubbles: true, shapes: true, colors: true, garden: true,
+    piano: true };
   try {
     var savedRotation = JSON.parse(localStorage.getItem('toddl-rotation'));
     if (savedRotation) {

@@ -65,6 +65,19 @@
         </svg>
         <span class="game-card-label">Garden</span>
       </button>
+
+      <button class="game-card card-piano" data-game="piano" aria-label="Piano">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <rect x="10" y="26" width="80" height="52" rx="8" class="icon-piano-body"/>
+          <rect x="16" y="34" width="14" height="38" rx="4" class="icon-key-a"/>
+          <rect x="33" y="34" width="14" height="38" rx="4" class="icon-key-b"/>
+          <rect x="50" y="34" width="14" height="38" rx="4" class="icon-key-c"/>
+          <rect x="67" y="34" width="14" height="38" rx="4" class="icon-key-d"/>
+          <path d="M74 22 q4 -10 12 -12" class="icon-note-stem"/>
+          <circle cx="72" cy="23" r="4.5" class="icon-note-head"/>
+        </svg>
+        <span class="game-card-label">Piano</span>
+      </button>
     </nav>
 
     <footer class="home-footer">
@@ -90,6 +103,10 @@
 
   <section id="screen-garden" class="screen screen-game" aria-label="Garden game">
     <div class="game-stage" id="stage-garden"></div>
+  </section>
+
+  <section id="screen-piano" class="screen screen-game" aria-label="Piano game">
+    <div class="game-stage" id="stage-piano"></div>
   </section>
 
   <!-- Shown in portrait: Toddl is a lap game, played sideways -->
@@ -177,6 +194,13 @@
         </button>
       </div>
 
+      <div class="setting-row">
+        <span class="setting-name">Piano</span>
+        <button class="toggle" id="toggle-game-piano" role="switch" aria-checked="true" aria-label="Piano in rotation">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+
       <p class="parents-tip">
         Tip: sit with your child and name what they see. The games are
         designed to be played together.
@@ -197,6 +221,7 @@
   <script src="js/shapes.js"></script>
   <script src="js/colors.js"></script>
   <script src="js/garden.js"></script>
+  <script src="js/piano.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

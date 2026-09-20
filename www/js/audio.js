@@ -60,6 +60,7 @@
     if (unlocked) return;
     if (ensureContext()) unlocked = true;
     preloadClips();
+    preloadNotes();
     startMusic();
   }
 
@@ -307,6 +308,74 @@
     tone(392.0,  { dur: 2.0, vol: 0.22, delay: 1.15 });
   }
 
+  /* ---------- Piano ---------- */
+
+  // A warm piano-ish voice: stacked harmonics with a quick attack and
+  // a long natural decay, soft-limited through a gentle lowpass.
+  function pianoNote(freq) {
+    if (!settings.sound || !ensureContext()) return;
+    var t0 = ctx.currentTime;
+    var partials = [
+      { ratio: 1, amp: 0.55 },
+      { ratio: 2, amp: 0.20 },
+      { ratio: 3, amp: 0.09 },
+      { ratio: 4, amp: 0.04 }
+    ];
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(freq * 6, t0);
+    lp.frequency.exponentialRampToValueAtTime(freq * 2.2, t0 + 1.1);
+    lp.connect(master);
+    for (var i = 0; i < partials.length; i++) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sine';
+      // a hair of stretch on upper partials reads as real strings
+      osc.frequency.value = freq * partials[i].ratio * (1 + 0.0006 * i * i);
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(partials[i].amp, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5);
+      osc.connect(g); g.connect(lp);
+      osc.start(t0);
+      osc.stop(t0 + 1.6);
+    }
+  }
+
+  // Sung letter names, pre-pitched to each key's note (one octave
+  // below the piano tone - a natural voice range in perfect harmony).
+  var NOTE_CLIPS = ['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5'];
+  var noteCache = {};
+  var currentNote = null;
+
+  function singNote(name) {
+    if (!settings.voice || NOTE_CLIPS.indexOf(name) === -1) return;
+    if (!noteCache[name]) {
+      noteCache[name] = new Audio('audio/notes/' + name + '.mp3');
+      noteCache[name].preload = 'auto';
+    }
+    var clip = noteCache[name];
+    try {
+      if (currentNote && !currentNote.paused) {
+        currentNote.pause();
+        currentNote.currentTime = 0;
+      }
+      currentNote = clip;
+      clip.currentTime = 0;
+      clip.volume = 0.85;
+      var p = clip.play();
+      if (p && p.catch) p.catch(function () { /* autoplay hiccup */ });
+    } catch (e) { /* decode hiccup - the piano tone still played */ }
+  }
+
+  function preloadNotes() {
+    NOTE_CLIPS.forEach(function (n) {
+      if (!noteCache[n]) {
+        noteCache[n] = new Audio('audio/notes/' + n + '.mp3');
+        noteCache[n].preload = 'auto';
+      }
+    });
+  }
+
   // One note per count, stepping up the pentatonic scale.
   function countNote(index) {
     var freq = PENTATONIC[Math.min(index, PENTATONIC.length - 1)];
@@ -459,6 +528,8 @@
     chime: chime,
     nightChime: nightChime,
     setNightMode: setNightMode,
+    pianoNote: pianoNote,
+    singNote: singNote,
     countNote: countNote,
     say: say,
     getSetting: function (key) { return settings[key]; },
