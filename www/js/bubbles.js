@@ -149,7 +149,7 @@
     bubble.popped = true;
 
     ToddlAudio.pop();
-    ToddlAudio.say(bubble.theme.word);
+    ToddlAudio.say(bubble.theme.word, { interrupt: true });
 
     bubble.el.style.scale = '';
     bubble.el.classList.add('is-popping');
