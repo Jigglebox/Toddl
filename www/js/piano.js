@@ -1,14 +1,14 @@
 /* ============================================================
    Piano — eight big white keys, C to C, each wearing its letter.
-   Press a key: it dips, a warm piano note sounds, a little note
-   floats up from the key, and a voice sings the letter at the
-   matching pitch (one octave below the tone — perfect harmony).
+   Press a key: it dips, a warm piano note sounds, and a little
+   lettered note floats up from the key in its color.
 
    Montessori notes:
-     - letters + pitch paired: the child hears that "C" IS a sound
+     - letters + pitch paired: the child sees "C" as the key sounds
      - free play, no sequence to follow, no wrong keys
      - chords welcome: every finger plays (full multi-touch),
-       and sliding a finger across the keys plays a glissando
+       and sliding a finger across the keys plays a glissando;
+       several fingers together float one "C Chord" label
      - Boomwhacker-style color coding, muted to Toddl's palette
    ============================================================ */
 
@@ -16,14 +16,14 @@
   'use strict';
 
   var KEYS = [
-    { letter: 'C', clip: 'c',  freq: 261.63, color: '#e2a49c', deep: '#c9857c' },
-    { letter: 'D', clip: 'd',  freq: 293.66, color: '#e8c193', deep: '#cda265' },
-    { letter: 'E', clip: 'e',  freq: 329.63, color: '#ecd9a0', deep: '#d4b96a' },
-    { letter: 'F', clip: 'f',  freq: 349.23, color: '#b7c9a8', deep: '#93aa81' },
-    { letter: 'G', clip: 'g',  freq: 392.00, color: '#a8bfd4', deep: '#7f9db8' },
-    { letter: 'A', clip: 'a',  freq: 440.00, color: '#c5b6d4', deep: '#a08fb8' },
-    { letter: 'B', clip: 'b',  freq: 493.88, color: '#dfaec6', deep: '#c489a8' },
-    { letter: 'C', clip: 'c5', freq: 523.25, color: '#e2a49c', deep: '#c9857c' }
+    { letter: 'C', freq: 261.63, color: '#e2a49c', deep: '#c9857c' },
+    { letter: 'D', freq: 293.66, color: '#e8c193', deep: '#cda265' },
+    { letter: 'E', freq: 329.63, color: '#ecd9a0', deep: '#d4b96a' },
+    { letter: 'F', freq: 349.23, color: '#b7c9a8', deep: '#93aa81' },
+    { letter: 'G', freq: 392.00, color: '#a8bfd4', deep: '#7f9db8' },
+    { letter: 'A', freq: 440.00, color: '#c5b6d4', deep: '#a08fb8' },
+    { letter: 'B', freq: 493.88, color: '#dfaec6', deep: '#c489a8' },
+    { letter: 'C', freq: 523.25, color: '#e2a49c', deep: '#c9857c' }
   ];
 
   var NOTES_PER_VISIT = 26;   // free play, then flow onward
@@ -42,8 +42,8 @@
     if (now - (key.lastPlayed || 0) < 130) return;   // per-key debounce
     key.lastPlayed = now;
 
-    // the tone and the key dip are instant — only the float and the
-    // singing wait a beat to see whether more fingers make it a chord
+    // the tone and the key dip are instant — only the float waits
+    // a beat to see whether more fingers make it a chord
     ToddlAudio.pianoNote(key.freq);
     el.classList.remove('is-down');
     void el.offsetWidth;
@@ -88,7 +88,6 @@
       var stageRect = stage.getBoundingClientRect();
       spawnFloat('♪ ' + root.key.letter + ' Chord', root.key.color,
         (left + right) / 2 - stageRect.left, top - stageRect.top - 8, true);
-      ToddlAudio.singNote(root.key.clip + '-chord');
     } else {
       entries.forEach(function (en) {
         var rect = en.el.getBoundingClientRect();
@@ -97,7 +96,6 @@
           rect.left - stageRect.left + rect.width / 2,
           rect.top - stageRect.top - 8, false);
       });
-      ToddlAudio.singNote(entries[entries.length - 1].key.clip);
     }
   }
 

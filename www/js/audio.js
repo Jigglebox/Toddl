@@ -60,7 +60,6 @@
     if (unlocked) return;
     if (ensureContext()) unlocked = true;
     preloadClips();
-    preloadNotes();
     startMusic();
   }
 
@@ -341,45 +340,6 @@
     }
   }
 
-  // Sung letter names, pre-pitched to each key's note (one octave
-  // below the piano tone - a natural voice range in perfect harmony).
-  // Each note also has a sung "<letter> chord" phrase at the same
-  // pitch, used when several keys are pressed together.
-  var NOTE_CLIPS = ['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5',
-    'c-chord', 'd-chord', 'e-chord', 'f-chord', 'g-chord',
-    'a-chord', 'b-chord', 'c5-chord'];
-  var noteCache = {};
-  var currentNote = null;
-
-  function singNote(name) {
-    if (!settings.voice || NOTE_CLIPS.indexOf(name) === -1) return;
-    if (!noteCache[name]) {
-      noteCache[name] = new Audio('audio/notes/' + name + '.mp3');
-      noteCache[name].preload = 'auto';
-    }
-    var clip = noteCache[name];
-    try {
-      if (currentNote && !currentNote.paused) {
-        currentNote.pause();
-        currentNote.currentTime = 0;
-      }
-      currentNote = clip;
-      clip.currentTime = 0;
-      clip.volume = 0.85;
-      var p = clip.play();
-      if (p && p.catch) p.catch(function () { /* autoplay hiccup */ });
-    } catch (e) { /* decode hiccup - the piano tone still played */ }
-  }
-
-  function preloadNotes() {
-    NOTE_CLIPS.forEach(function (n) {
-      if (!noteCache[n]) {
-        noteCache[n] = new Audio('audio/notes/' + n + '.mp3');
-        noteCache[n].preload = 'auto';
-      }
-    });
-  }
-
   // One note per count, stepping up the pentatonic scale.
   function countNote(index) {
     var freq = PENTATONIC[Math.min(index, PENTATONIC.length - 1)];
@@ -533,7 +493,6 @@
     nightChime: nightChime,
     setNightMode: setNightMode,
     pianoNote: pianoNote,
-    singNote: singNote,
     countNote: countNote,
     say: say,
     getSetting: function (key) { return settings[key]; },

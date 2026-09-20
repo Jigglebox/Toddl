@@ -149,11 +149,11 @@ garden quietly resets with new flower colors.
 Eight big white keys, C to C, each wearing its letter on a Boomwhacker-
 style pastel color band (C rose, D amber, E butter, F sage, G blue,
 A lilac, B pink). Press a key: it dips, a warm synthesized piano note
-sounds, a little "♪ C" floats up from the key in its color, and a voice
-sings the letter at the matching pitch — the sung letters are the same
-Piper voice as the rest of the app, pitch-shifted offline to each key's
-note (one octave below the tone, a natural voice range in perfect
-octave harmony, so the child hears that the letter IS the sound).
+sounds, and a little "♪ C" floats up from the key in its color — the
+letter and the pitch arrive together, with no voice talking over the
+music. (A pitch-shifted singing voice was tried and retired: shifting
+a speech voice to each note warps its formants into something deeply
+uncanny, so the piano keeps its human silence and lets the tones sing.)
 
 - *Teaches:* letter names paired with pitch, cause-and-effect, early
   musical exploration.
@@ -163,13 +163,10 @@ octave harmony, so the child hears that the letter IS the sound).
   visit timer.
 - *Chords:* when several fingers land together (within a 90 ms window),
   every tone sounds — but instead of a pile of letters, one larger
-  "♪ C Chord" floats up spanning the pressed keys and the voice sings
-  "C chord" at the root's pitch (the chord is named from its lowest
-  note). One finger sliding across keys stays a glissando — each note
-  floats and the voice follows along. The piano tones are fully
-  polyphonic and always ring out their natural decay; only the singing
-  voice is monophonic (a new note or chord cuts the previous letter so
-  the singing stays intelligible).
+  "♪ C Chord" floats up spanning the pressed keys (the chord is named
+  from its lowest note). One finger sliding across keys stays a
+  glissando with per-note floats. The piano tones are fully polyphonic
+  and always ring out their full natural decay.
 
 ## For grown-ups
 
