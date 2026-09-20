@@ -161,6 +161,15 @@ octave harmony, so the child hears that the letter IS the sound).
   sliding a finger across the keys plays a glissando; free play with no
   sequence and no wrong keys; flows onward after ~26 notes or the
   visit timer.
+- *Chords:* when several fingers land together (within a 90 ms window),
+  every tone sounds — but instead of a pile of letters, one larger
+  "♪ C Chord" floats up spanning the pressed keys and the voice sings
+  "C chord" at the root's pitch (the chord is named from its lowest
+  note). One finger sliding across keys stays a glissando — each note
+  floats and the voice follows along. The piano tones are fully
+  polyphonic and always ring out their natural decay; only the singing
+  voice is monophonic (a new note or chord cuts the previous letter so
+  the singing stays intelligible).
 
 ## For grown-ups
 

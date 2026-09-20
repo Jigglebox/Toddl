@@ -1,7 +1,7 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v8';
+var CACHE = 'toddl-v9';
 var WORDS = ['dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
   'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
   'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
@@ -25,7 +25,9 @@ var ASSETS = [
 ].concat(WORDS.map(function (w) { return 'audio/words/' + w + '.mp3'; }))
  .concat(['scene.webp', 'sceneglow.webp', 'orion.webp']
    .map(function (g) { return 'img/galaxy/' + g; }))
- .concat(['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5']
+ .concat(['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5',
+   'c-chord', 'd-chord', 'e-chord', 'f-chord', 'g-chord',
+   'a-chord', 'b-chord', 'c5-chord']
    .map(function (n) { return 'audio/notes/' + n + '.mp3'; }));
 
 self.addEventListener('install', function (e) {

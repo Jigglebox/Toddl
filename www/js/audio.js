@@ -343,7 +343,11 @@
 
   // Sung letter names, pre-pitched to each key's note (one octave
   // below the piano tone - a natural voice range in perfect harmony).
-  var NOTE_CLIPS = ['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5'];
+  // Each note also has a sung "<letter> chord" phrase at the same
+  // pitch, used when several keys are pressed together.
+  var NOTE_CLIPS = ['c', 'd', 'e', 'f', 'g', 'a', 'b', 'c5',
+    'c-chord', 'd-chord', 'e-chord', 'f-chord', 'g-chord',
+    'a-chord', 'b-chord', 'c5-chord'];
   var noteCache = {};
   var currentNote = null;
 

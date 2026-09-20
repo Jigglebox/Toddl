@@ -28,46 +28,91 @@
 
   var NOTES_PER_VISIT = 26;   // free play, then flow onward
 
+  var GATHER_MS = 90;         // presses closer than this may be a chord
+
   var stage = null;
   var keysEl = null;
   var flowTimer = null;
   var notesPlayed = 0;
   var activePointers = {};    // pointerId -> true while a finger is down
+  var pending = null;         // { entries: [{key, el, pointerId}], timer }
 
-  function playKey(key, el) {
+  function playKey(key, el, pointerId) {
     var now = Date.now();
     if (now - (key.lastPlayed || 0) < 130) return;   // per-key debounce
     key.lastPlayed = now;
 
+    // the tone and the key dip are instant — only the float and the
+    // singing wait a beat to see whether more fingers make it a chord
     ToddlAudio.pianoNote(key.freq);
-    ToddlAudio.singNote(key.clip);
-
-    // dip the key
     el.classList.remove('is-down');
     void el.offsetWidth;
     el.classList.add('is-down');
     window.setTimeout(function () { el.classList.remove('is-down'); }, 160);
 
-    // a little note floats up from the key
-    var rect = el.getBoundingClientRect();
-    var stageRect = stage.getBoundingClientRect();
-    var float = document.createElement('div');
-    float.className = 'float-note';
-    float.style.left = (rect.left - stageRect.left + rect.width / 2) + 'px';
-    float.style.top = (rect.top - stageRect.top - 8) + 'px';
-    float.style.background = key.color;
-    float.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
-    float.textContent = '♪ ' + key.letter;
-    stage.appendChild(float);
-    window.setTimeout(function () {
-      if (float.parentNode) float.parentNode.removeChild(float);
-    }, 1900);
+    if (!pending) {
+      pending = { entries: [] };
+      pending.timer = window.setTimeout(flushNotes, GATHER_MS);
+    }
+    pending.entries.push({ key: key, el: el, pointerId: pointerId });
 
     // enough free play for one visit — drift onward
     notesPlayed++;
     if (notesPlayed >= NOTES_PER_VISIT && !flowTimer && window.ToddlFlow) {
       flowTimer = window.setTimeout(function () { ToddlFlow.next(); }, 2200);
     }
+  }
+
+  function flushNotes() {
+    if (!pending || !stage) { pending = null; return; }
+    var entries = pending.entries;
+    pending = null;
+
+    // a chord is several *different fingers* inside the window —
+    // one finger sliding across keys (glissando) stays a melody
+    var fingers = {};
+    entries.forEach(function (en) { fingers[en.pointerId] = true; });
+    var isChord = entries.length >= 2 && Object.keys(fingers).length >= 2;
+
+    if (isChord) {
+      // named from the lowest note, as chords are
+      var root = entries[0];
+      var left = Infinity, right = -Infinity, top = Infinity;
+      entries.forEach(function (en) {
+        if (en.key.freq < root.key.freq) root = en;
+        var r = en.el.getBoundingClientRect();
+        if (r.left < left) left = r.left;
+        if (r.right > right) right = r.right;
+        if (r.top < top) top = r.top;
+      });
+      var stageRect = stage.getBoundingClientRect();
+      spawnFloat('♪ ' + root.key.letter + ' Chord', root.key.color,
+        (left + right) / 2 - stageRect.left, top - stageRect.top - 8, true);
+      ToddlAudio.singNote(root.key.clip + '-chord');
+    } else {
+      entries.forEach(function (en) {
+        var rect = en.el.getBoundingClientRect();
+        var stageRect = stage.getBoundingClientRect();
+        spawnFloat('♪ ' + en.key.letter, en.key.color,
+          rect.left - stageRect.left + rect.width / 2,
+          rect.top - stageRect.top - 8, false);
+      });
+      ToddlAudio.singNote(entries[entries.length - 1].key.clip);
+    }
+  }
+
+  function spawnFloat(text, color, x, y, isChord) {
+    var float = document.createElement('div');
+    float.className = isChord ? 'float-note is-chord' : 'float-note';
+    float.style.left = x + 'px';
+    float.style.top = y + 'px';
+    float.style.background = color;
+    float.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+    float.textContent = text;
+    stage.appendChild(float);
+    window.setTimeout(function () {
+      if (float.parentNode) float.parentNode.removeChild(float);
+    }, 1900);
   }
 
   function buildPiano() {
@@ -96,11 +141,11 @@
         // touch pointers implicitly capture; release so a sliding
         // finger can enter the neighbouring keys (glissando!)
         try { el.releasePointerCapture(e.pointerId); } catch (err) { /* ok */ }
-        playKey(key, el);
+        playKey(key, el, e.pointerId);
       });
 
       el.addEventListener('pointerenter', function (e) {
-        if (activePointers[e.pointerId]) playKey(key, el);
+        if (activePointers[e.pointerId]) playKey(key, el, e.pointerId);
       });
 
       keysEl.appendChild(el);
@@ -127,6 +172,7 @@
 
   function stop() {
     if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
+    if (pending) { window.clearTimeout(pending.timer); pending = null; }
     if (stage) stage.innerHTML = '';
     stage = null;
     keysEl = null;
