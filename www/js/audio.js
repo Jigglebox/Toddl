@@ -51,7 +51,8 @@
       master.gain.value = 0.35;
       master.connect(ctx.destination);
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    // Never wake the speakers while the app is in the background.
+    if (ctx.state === 'suspended' && !document.hidden) ctx.resume();
     return true;
   }
 
@@ -480,6 +481,47 @@
       window.speechSynthesis.speak(u);
     } catch (e) { speaking = false; }
   }
+
+  /* ---------- Background hush ----------
+     Minimized means quiet. Phones happily keep an audible page
+     playing in the background like a music app — exactly wrong for
+     a toddler game. When the app is hidden: stop scheduling music,
+     suspend the AudioContext (silences every synthesized voice,
+     including notes already scheduled), and cut any word mid-say.
+     Coming back resumes the context and the lullaby. */
+
+  function hush() {
+    stopMusic();
+    if (ctx && ctx.state === 'running') {
+      try { ctx.suspend(); } catch (e) { /* ok */ }
+    }
+    try {
+      if (currentClip && !currentClip.paused) {
+        currentClip.pause();
+        currentClip.currentTime = 0;
+      }
+    } catch (e) { /* ok */ }
+    speaking = false;
+    if ('speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch (e) { /* ok */ }
+    }
+  }
+
+  function wake() {
+    if (ctx && ctx.state === 'suspended') {
+      try { ctx.resume(); } catch (e) { /* ok */ }
+    }
+    if (unlocked) startMusic();
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) hush(); else wake();
+  });
+  // iOS sometimes skips visibilitychange when the app is swapped away.
+  window.addEventListener('pagehide', hush);
+  window.addEventListener('pageshow', function () {
+    if (!document.hidden) wake();
+  });
 
   loadSettings();
 
