@@ -173,7 +173,9 @@ uncanny, so the piano keeps its human silence and lets the tones sing.)
 - *Follow the shimmer:* each visit picks a random song the child will
   recognize — Twinkle Twinkle, Mary Had a Little Lamb, Row Row Row
   Your Boat, the ABC song, Hot Cross Buns, London Bridge, Old
-  MacDonald — and a golden shimmer ripples across the next note's key
+  MacDonald — and the next note's key shimmers like scales under
+  sunlit water (a wandering caustic glow plus a scatter of twinkling
+  glints, rebuilt fresh for every note)
   (a quiet title pill tells grown-ups which tune it is). Press the
   shimmering key and the shimmer hops onward; press anything else and
   the piano just plays, the hint waiting without comment. No

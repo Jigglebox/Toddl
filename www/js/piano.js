@@ -78,13 +78,44 @@
   var lastSongIndex = -1;
 
   function clearHint() {
-    keyEls.forEach(function (el) { el.classList.remove('is-hint'); });
+    keyEls.forEach(function (el) {
+      el.classList.remove('is-hint');
+      var sh = el.querySelector('.key-shimmer');
+      if (sh) sh.parentNode.removeChild(sh);
+    });
+  }
+
+  // Sunlight on scales under water: a slow wandering caustic light
+  // plus a scatter of little glints, each twinkling to its own beat.
+  // Rebuilt fresh for every note so the sparkle never repeats itself.
+  function makeShimmer(el) {
+    var sh = document.createElement('div');
+    sh.className = 'key-shimmer';
+    for (var i = 0; i < 14; i++) {
+      var g = document.createElement('span');
+      g.className = 'key-glint';
+      g.style.left = (5 + Math.random() * 90) + '%';
+      g.style.top = (5 + Math.random() * 90) + '%';
+      var s = 5 + Math.random() * 11;
+      g.style.width = s + 'px';
+      g.style.height = s + 'px';
+      g.style.setProperty('--rot', Math.floor(Math.random() * 90) + 'deg');
+      g.style.animationDuration = (0.8 + Math.random() * 1.1) + 's';
+      g.style.animationDelay = (-Math.random() * 2) + 's';
+      var tint = Math.random();
+      g.style.color = tint < 0.5 ? '#fff3d4'
+                    : tint < 0.8 ? '#d7efff' : '#ffdfef';
+      sh.appendChild(g);
+    }
+    el.appendChild(sh);
   }
 
   function showHint() {
     if (!song || !stage) return;
     clearHint();
-    keyEls[song.steps[songPos]].classList.add('is-hint');
+    var el = keyEls[song.steps[songPos]];
+    el.classList.add('is-hint');
+    makeShimmer(el);
   }
 
   // A fresh visit starts on a random song; finishing one moves to the
