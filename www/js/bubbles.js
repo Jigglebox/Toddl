@@ -306,7 +306,7 @@
     if (blurPx) layerEl.style.filter = 'blur(' + blurPx + 'px)';
     var url = tile.toDataURL('image/png');
     var n = Math.ceil((tileCss + screenW) / tileCss) + 1;
-    for (var ti = 0; ti < n; ti++) {
+    for (var ti = -1; ti < n; ti++) {
       var img = document.createElement('img');
       img.src = url;
       img.style.cssText = 'position:absolute;top:0;left:' + (ti * tileCss) +
@@ -356,19 +356,27 @@
 
     // --- The sky is ONE continuous scene (North America Nebula,
     // real astrophotography), mirror-tiled for a seamless 360°.
-    // It fills every pixel — no gaps, no collage. ---
+    // It fills every pixel — no gaps, no collage.
+    // Every layer's pan wraps at its period (lx in [0, period)), and
+    // the breathing scale can expose a sliver LEFT of lx — so each
+    // layer gets one period-correct tile at negative X too, or the
+    // whole backdrop visibly pops at the wrap seam. ---
     var sceneW = Math.round(H * (2671 / 2000));
     var sceneLayer = makeLayer(0.85, sceneW * 2);
     var sceneTiles = Math.ceil((sceneW * 2 + rect.width) / sceneW) + 1;
-    for (var si = 0; si < sceneTiles; si++) {
+    for (var si = -1; si < sceneTiles; si++) {
       var sImg = addImg(sceneLayer, 'scene.webp', si * sceneW, 0, sceneW,
-        { flip: si % 2 === 1 });
+        { flip: ((si % 2) + 2) % 2 === 1 });
       sImg.style.height = H + 'px';
     }
 
-    // moon + twinkling stars ride the scene
-    var moon = addOverlay(sceneLayer, 'gx-moon', sceneW * 0.5, H * 0.22);
-    moon.textContent = '\u{1F319}';
+    // moon + twinkling stars ride the scene — the moon, like the
+    // twinkles, needs its period twin so it doesn't pop at the seam
+    for (var mi = 0; mi < 2; mi++) {
+      var moon = addOverlay(sceneLayer, 'gx-moon',
+        sceneW * 0.5 + mi * sceneW * 2, H * 0.22);
+      moon.textContent = '\u{1F319}';
+    }
     for (var i = 0; i < 30; i++) {
       var tx = Math.random() * sceneW * 2;
       var ty = Math.random() * H;
@@ -384,10 +392,14 @@
     var glowW = Math.round(glowH * (1736 / 1300));
     var glowLayer = makeLayer(1.12, glowW * 2);
     var glowTiles = Math.ceil((glowW * 2 + rect.width) / glowW) + 1;
-    for (var gi = 0; gi < glowTiles; gi++) {
+    // The half-tile offset used to leave [0, glowW/2) BARE — a whole
+    // screen of missing glow right after every wrap, which read as
+    // the sky flicking to a different image. Tile from gi = -2 so the
+    // glow covers the seam with margin on both sides.
+    for (var gi = -2; gi < glowTiles; gi++) {
       var gImg = addImg(glowLayer, 'sceneglow.webp',
         gi * glowW + glowW * 0.5, Math.round((H - glowH) / 2), glowW,
-        { flip: gi % 2 === 1 });
+        { flip: ((gi % 2) + 2) % 2 === 1 });
       gImg.style.height = glowH + 'px';
     }
     // Orion: a single magenta heart hidden in the sky — find it by
