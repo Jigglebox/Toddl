@@ -30,12 +30,100 @@
 
   var GATHER_MS = 90;         // presses closer than this may be a chord
 
+  /* ---------- Follow-the-glow songs ----------
+     One key at a time wears a soft pulsing glow: the next note of a
+     song the child (and parent) will recognize. Press it and the glow
+     hops to the following note — press anything else and the piano
+     just plays as always, the glow waiting patiently. No instruction,
+     no failure: the hint is simply the brightest thing to poke, and
+     poking it in order happens to play a real song. Key indices are
+     0..7 over C D E F G A B C. */
+  var SONGS = [
+    { name: 'Twinkle Twinkle Little Star',
+      steps: [0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0,
+              4, 4, 3, 3, 2, 2, 1,  4, 4, 3, 3, 2, 2, 1,
+              0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0] },
+    { name: 'The ABC Song',
+      steps: [0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 1, 1, 0,
+              4, 4, 3, 2, 2, 1,  4, 4, 4, 3, 2, 2, 1,
+              0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0] },
+    { name: 'Mary Had a Little Lamb',
+      steps: [2, 1, 0, 1, 2, 2, 2,  1, 1, 1,  2, 4, 4,
+              2, 1, 0, 1, 2, 2, 2, 2,  1, 1, 2, 1, 0] },
+    { name: 'Row Row Row Your Boat',
+      steps: [0, 0, 0, 1, 2,  2, 1, 2, 3, 4,
+              7, 7, 7, 4, 4, 4, 2, 2, 2, 0, 0, 0,  4, 3, 2, 1, 0] },
+    { name: 'Hot Cross Buns',
+      steps: [2, 1, 0,  2, 1, 0,  0, 0, 0, 0, 1, 1, 1, 1,  2, 1, 0] },
+    { name: 'London Bridge',
+      steps: [4, 5, 4, 3, 2, 3, 4,  1, 2, 3,  2, 3, 4,
+              4, 5, 4, 3, 2, 3, 4,  1, 4, 2, 0] },
+    { name: 'Old MacDonald',
+      steps: [0, 0, 0, 4, 5, 5, 4,  2, 2, 1, 1, 0,
+              4, 0, 0, 0, 4, 5, 5, 4,  2, 2, 1, 1, 0] }
+  ];
+
   var stage = null;
   var keysEl = null;
+  var keyEls = [];
   var flowTimer = null;
   var notesPlayed = 0;
   var activePointers = {};    // pointerId -> true while a finger is down
   var pending = null;         // { entries: [{key, el, pointerId}], timer }
+  var song = null;
+  var songPos = 0;
+  var songTimer = null;
+  var lastSongIndex = -1;
+
+  function clearHint() {
+    keyEls.forEach(function (el) { el.classList.remove('is-hint'); });
+  }
+
+  function showHint() {
+    if (!song || !stage) return;
+    clearHint();
+    keyEls[song.steps[songPos]].classList.add('is-hint');
+  }
+
+  function startSong() {
+    var idx;
+    do { idx = Math.floor(Math.random() * SONGS.length); }
+    while (SONGS.length > 1 && idx === lastSongIndex);
+    lastSongIndex = idx;
+    song = SONGS[idx];
+    songPos = 0;
+
+    // A soft title pill so grown-ups know which tune the glow spells.
+    var title = document.createElement('div');
+    title.className = 'song-title';
+    title.textContent = '♪ ' + song.name;
+    stage.appendChild(title);
+    window.setTimeout(function () {
+      if (title.parentNode) title.parentNode.removeChild(title);
+    }, 3200);
+
+    showHint();
+  }
+
+  function songComplete() {
+    song = null;
+    clearHint();
+    ToddlAudio.chime();
+    // A little scatter of notes dances up from the keyboard.
+    for (var i = 0; i < 4; i++) {
+      var k = KEYS[Math.floor(Math.random() * KEYS.length)];
+      var el = keyEls[Math.floor(Math.random() * keyEls.length)];
+      var rect = el.getBoundingClientRect();
+      var stageRect = stage.getBoundingClientRect();
+      window.setTimeout(function (k, x, y) {
+        return function () {
+          if (stage) spawnFloat('♪', k.color, x, y, false);
+        };
+      }(k, rect.left - stageRect.left + rect.width / 2,
+           rect.top - stageRect.top - 8), i * 160);
+    }
+    songTimer = window.setTimeout(startSong, 2800);
+  }
 
   function playKey(key, el, pointerId) {
     var now = Date.now();
@@ -56,7 +144,23 @@
     }
     pending.entries.push({ key: key, el: el, pointerId: pointerId });
 
-    // enough free play for one visit — drift onward
+    if (song && keyEls[song.steps[songPos]] === el) {
+      // The glowing key! The song advances, and following it keeps
+      // the visit alive — guided play should never be cut short.
+      songPos++;
+      clearHint();
+      if (window.ToddlFlow) ToddlFlow.extend();
+      if (songPos >= song.steps.length) {
+        songComplete();
+      } else {
+        if (songTimer) window.clearTimeout(songTimer);
+        songTimer = window.setTimeout(showHint, 420);
+      }
+      return;
+    }
+
+    // Free-play poking (off the song): enough of it and play
+    // simply drifts onward to the next activity.
     notesPlayed++;
     if (notesPlayed >= NOTES_PER_VISIT && !flowTimer && window.ToddlFlow) {
       flowTimer = window.setTimeout(function () { ToddlFlow.next(); }, 2200);
@@ -121,6 +225,7 @@
     keysEl = document.createElement('div');
     keysEl.className = 'piano-keys';
     stage.appendChild(keysEl);
+    keyEls = [];
 
     KEYS.forEach(function (key) {
       var el = document.createElement('div');
@@ -147,6 +252,7 @@
       });
 
       keysEl.appendChild(el);
+      keyEls.push(el);
     });
 
     function lift(e) { delete activePointers[e.pointerId]; }
@@ -166,14 +272,18 @@
       cloudTint: 0.6
     });
     buildPiano();
+    startSong();
   }
 
   function stop() {
     if (flowTimer) { window.clearTimeout(flowTimer); flowTimer = null; }
     if (pending) { window.clearTimeout(pending.timer); pending = null; }
+    if (songTimer) { window.clearTimeout(songTimer); songTimer = null; }
+    song = null;
     if (stage) stage.innerHTML = '';
     stage = null;
     keysEl = null;
+    keyEls = [];
     activePointers = {};
   }
 
