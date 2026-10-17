@@ -43,16 +43,18 @@
       steps: [0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0,
               4, 4, 3, 3, 2, 2, 1,  4, 4, 3, 3, 2, 2, 1,
               0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0] },
-    { name: 'The ABC Song',
-      steps: [0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 1, 1, 0,
-              4, 4, 3, 2, 2, 1,  4, 4, 4, 3, 2, 2, 1,
-              0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0] },
     { name: 'Mary Had a Little Lamb',
       steps: [2, 1, 0, 1, 2, 2, 2,  1, 1, 1,  2, 4, 4,
               2, 1, 0, 1, 2, 2, 2, 2,  1, 1, 2, 1, 0] },
     { name: 'Row Row Row Your Boat',
       steps: [0, 0, 0, 1, 2,  2, 1, 2, 3, 4,
               7, 7, 7, 4, 4, 4, 2, 2, 2, 0, 0, 0,  4, 3, 2, 1, 0] },
+    // kept well away from Twinkle in the running order — it's the
+    // same melody, and back-to-back they sound like a repeat
+    { name: 'The ABC Song',
+      steps: [0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 1, 1, 0,
+              4, 4, 3, 2, 2, 1,  4, 4, 4, 3, 2, 2, 1,
+              0, 0, 4, 4, 5, 5, 4,  3, 3, 2, 2, 1, 1, 0] },
     { name: 'Hot Cross Buns',
       steps: [2, 1, 0,  2, 1, 0,  0, 0, 0, 0, 1, 1, 1, 1,  2, 1, 0] },
     { name: 'London Bridge',
@@ -85,10 +87,14 @@
     keyEls[song.steps[songPos]].classList.add('is-hint');
   }
 
-  function startSong() {
-    var idx;
-    do { idx = Math.floor(Math.random() * SONGS.length); }
-    while (SONGS.length > 1 && idx === lastSongIndex);
+  // A fresh visit starts on a random song; finishing one moves to the
+  // NEXT song in the list (wrapping), so a child who plays through
+  // gets a tour of the whole songbook, never a repeat.
+  function startSong(idx) {
+    if (typeof idx !== 'number') {
+      do { idx = Math.floor(Math.random() * SONGS.length); }
+      while (SONGS.length > 1 && idx === lastSongIndex);
+    }
     lastSongIndex = idx;
     song = SONGS[idx];
     songPos = 0;
@@ -122,7 +128,9 @@
       }(k, rect.left - stageRect.left + rect.width / 2,
            rect.top - stageRect.top - 8), i * 160);
     }
-    songTimer = window.setTimeout(startSong, 2800);
+    songTimer = window.setTimeout(function () {
+      startSong((lastSongIndex + 1) % SONGS.length);
+    }, 2800);
   }
 
   function playKey(key, el, pointerId) {

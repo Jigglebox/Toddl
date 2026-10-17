@@ -170,18 +170,21 @@ uncanny, so the piano keeps its human silence and lets the tones sing.)
   from its lowest note). One finger sliding across keys stays a
   glissando with per-note floats. The piano tones are fully polyphonic
   and always ring out their full natural decay.
-- *Follow the glow:* each visit picks a random song the child will
-  recognize — Twinkle Twinkle, the ABC song, Mary Had a Little Lamb,
-  Row Row Row Your Boat, Hot Cross Buns, London Bridge, Old
-  MacDonald — and the next note's key wears a soft, patient pulse (a
-  quiet title pill tells grown-ups which tune it is). Press the glowing
-  key and the glow hops onward; press anything else and the piano just
-  plays, the hint waiting without comment. No instruction and no
-  failure — the glow is simply the most interesting thing to poke, and
-  poking it in order happens to play a real song. Following the song
-  keeps the visit alive (only free-play poking counts toward flowing
-  on), and finishing one earns a chime, a scatter of dancing notes,
-  and a new song.
+- *Follow the shimmer:* each visit picks a random song the child will
+  recognize — Twinkle Twinkle, Mary Had a Little Lamb, Row Row Row
+  Your Boat, the ABC song, Hot Cross Buns, London Bridge, Old
+  MacDonald — and a golden shimmer ripples across the next note's key
+  (a quiet title pill tells grown-ups which tune it is). Press the
+  shimmering key and the shimmer hops onward; press anything else and
+  the piano just plays, the hint waiting without comment. No
+  instruction and no failure — the shimmer is simply the most
+  interesting thing to poke, and poking it in order happens to play a
+  real song. Following the song keeps the visit alive (only free-play
+  poking counts toward flowing on). Finishing one earns a chime and a
+  scatter of dancing notes, then play moves to the *next* song in the
+  list (wrapping around), so playing through gives a tour of the whole
+  songbook — and since Twinkle and the ABC song share a melody, they
+  sit far apart in the running order.
 
 ## For grown-ups
 
