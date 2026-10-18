@@ -1083,22 +1083,33 @@ button {
       #f6e8d8 0%, #f6eedd 30%, #f3f0e2 58%, #e9e9d3 100%);
 }
 
-/* Soil mounds: the whole mound (and a margin above it) is the
-   tap target; the soil is drawn along its bottom edge. */
-.g-mound {
+/* The garden path: a long world that glides one bed at a time,
+   and an overlay (count bubble, butterfly) fixed to the screen. */
+.g-world {
   position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  cursor: pointer;
-  touch-action: none;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
 }
 
-.g-mound.is-wiggle { animation: mound-wiggle 0.45s var(--ease-spring); }
+.g-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 
-@keyframes mound-wiggle {
-  0%, 100% { transform: translate(-50%, -50%) rotate(0); }
-  30%      { transform: translate(-50%, -50%) rotate(-2.5deg); }
-  65%      { transform: translate(-50%, -50%) rotate(2deg); }
+.g-overlay > * { pointer-events: auto; }
+.g-overlay > .count-label { pointer-events: none; }
+
+/* A garden bed: the whole bed (and a margin above it) is the tap
+   target; the soil is drawn along its bottom edge. */
+.g-bed {
+  position: absolute;
+  transform: translateX(-50%);
+  cursor: pointer;
+  touch-action: none;
 }
 
 .g-soil {
@@ -1110,52 +1121,36 @@ button {
 
 .g-soil svg { width: 100%; height: 100%; display: block; }
 
-/* Seeds nodding on a bare mound: "plant me" */
-.g-seeds {
+/* Seeds show how many flowers the bed wants */
+.g-seed {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 7px;
-  transition: opacity 0.4s var(--ease-gentle);
-}
-
-.g-seeds span {
-  width: 10px;
-  height: 14px;
+  width: 20px;
+  height: 26px;
   border-radius: 50% 50% 45% 45%;
   background: #8c7655;
   box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.12);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
   animation: seed-nod 1.8s ease-in-out infinite;
+  transition: opacity 0.35s var(--ease-gentle);
 }
 
-.g-seeds span:nth-child(2) { transform: translateY(-4px); }
+.g-seed.is-sprouted { opacity: 0; }
 
 @keyframes seed-nod {
   0%, 100% { translate: 0 0; rotate: -8deg; }
   50%      { translate: 0 -5px; rotate: 8deg; }
 }
 
-.g-mound.is-planted .g-seeds { opacity: 0; }
-
-/* Water patters onto a freshly planted mound */
-.g-drop {
+/* Stepping stones along the path between beds */
+.g-stone {
   position: absolute;
-  width: 8px;
+  width: 34px;
   height: 12px;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  background: rgba(148, 196, 230, 0.85);
+  border-radius: 50%;
+  background: rgba(195, 180, 148, 0.55);
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 3000;
-  opacity: 0;
-  animation: drop-fall 0.6s ease-in forwards;
-}
-
-@keyframes drop-fall {
-  0%   { opacity: 0; transform: translateY(0); }
-  20%  { opacity: 1; }
-  85%  { opacity: 1; }
-  100% { opacity: 0; transform: translateY(var(--fall)) scaleY(0.6); }
 }
 
 /* Flowers: four nested layers, each owning one transform —
@@ -1204,25 +1199,7 @@ button {
   100% { transform: scale(1, 1); }
 }
 
-/* Petals puffed loose by a tap, tumbling down */
-.g-petal {
-  position: absolute;
-  width: 10px;
-  height: 7px;
-  border-radius: 60% 40% 60% 40%;
-  pointer-events: none;
-  z-index: 3000;
-  animation: petal-tumble 1.6s var(--ease-gentle) forwards;
-}
-
-@keyframes petal-tumble {
-  0%   { opacity: 0.95; transform: translate(-50%, -50%) rotate(0); }
-  100% { opacity: 0;
-         transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
-                    rotate(var(--rot)); }
-}
-
-/* The numeral marker a mound earns once its flowers are counted */
+/* The numeral sign a bed earns once its flowers are counted */
 .g-marker {
   position: absolute;
   transform: translate(-50%, -100%);

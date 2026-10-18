@@ -1,68 +1,67 @@
 /* ============================================================
-   Garden — a dawn meadow with five soil mounds, and a garden
-   that comes alive as the child tends it.
+   Garden — a walk along a garden path, one bed at a time.
 
-   Planting (counting): tap a bare mound and water patters onto
-   it, then it grows as many flowers as its number — the first
-   mound planted grows ONE, the next TWO, up to FIVE — each
-   flower popping up as Toddl counts it aloud: "one… two…
-   three…". A little marker with the numeral plants itself in
-   the soil when the count is done. Tap a planted mound and
-   Toddl counts its flowers again, each one bobbing as it's
-   counted.
-
-   Playing (imagination): every flower is alive. Tap one and it
-   boings and sings a bell note (low on the left, high on the
-   right — the whole garden is an instrument). Brush a finger
-   through the flowers and they lean and spring back like wind
-   through a meadow, chiming as you pass. Butterflies arrive as
-   the garden fills and drift from flower to flower; tap one and
-   it flutters off to find another. When all fifteen flowers are
-   up, the whole garden ripples in a rising glissando, and play
-   continues until the child wanders off — then the next
-   activity drifts in.
+   Only ONE bed is ever on screen. Its seeds show how many
+   flowers it wants: one seed in the first bed, two in the next,
+   up to five. Each tap on the bed grows one flower while Toddl
+   counts it aloud — "one… two… three…" — and the butterfly
+   friend flutters over to land on the flower just counted.
+   When every seed has bloomed, the bed's number sign pops up,
+   the child can play for a moment (tap a flower and it sings,
+   brush a finger through them and they sway and chime, tap the
+   bed to count again), and then the view glides along the path
+   to the next bed. After the fifth bed, the next activity
+   drifts in.
 
    Montessori notes:
-     - real quantity: the numeral, the spoken word, and the
-       number of flowers always agree (one-to-one counting)
-     - recount on demand — the child can check the count
-     - self-directed open play once the counting is done; no
-       goals, no fail states, nothing to get wrong
+     - isolation: one quantity at a time, never more than five
+       flowers on screen
+     - one tap = one flower = one number (one-to-one counting),
+       and the seeds make the goal visible without instructions
+     - the numeral appears only once the quantity is built
+     - no fail states: extra taps on a full bed just recount it
    ============================================================ */
 
 (function () {
   'use strict';
 
   var PALETTES = [
-    { petal: '#c5b6d4', deep: '#a08fb8', center: '#e3cd8c' },
     { petal: '#e6b8b0', deep: '#c9857c', center: '#ecd9a0' },
     { petal: '#a8bfd4', deep: '#7f9db8', center: '#ecd9a0' },
     { petal: '#ecd9a0', deep: '#d4b96a', center: '#cf9188' },
+    { petal: '#c5b6d4', deep: '#a08fb8', center: '#e3cd8c' },
     { petal: '#dfaec6', deep: '#c489a8', center: '#e3cd8c' }
   ];
   var HEADS = ['daisy', 'tulip', 'aster'];
   var NUMBER_WORDS = ['one', 'two', 'three', 'four', 'five'];
-  var MOUNDS = 5;
-  var COUNT_STEP_MS = 720;    // one counted flower per step
-  var PLAY_BUDGET = 28;       // garden-play touches after full bloom
-  var IDLE_MS = 15000;        // quiet garden after full bloom -> move on
-  var BUTTERFLY_HUES = [0, 300, 110, 40];
+  var BEDS = 5;
+  var TAP_GAP_MS = 450;       // one new flower at most this often
+  var COUNT_STEP_MS = 720;    // recount pace
+  var LINGER_MS = 4500;       // play time on a full bed before gliding on
+  var LINGER_MAX_MS = 12000;  // ...extended by play, but not forever
+  var GLIDE_MS = 1800;
+  var END_IDLE_MS = 8000;     // after the last bed: quiet -> move on
+  var END_BUDGET = 14;        // ...or this many more touches
 
   var stage = null;
-  var layer = null;
+  var world = null;
+  var overlay = null;
   var geo = null;
-  var mounds = [];
-  var flowers = [];
-  var butterflies = [];
-  var planted = 0;
-  var busy = false;
-  var fullBloom = false;
-  var interactions = 0;
+  var beds = [];
+  var index = 0;
+  var phase = 'counting';     // counting | full | gliding | done
+  var lastGrowAt = 0;
+  var recounting = false;
+  var fullAt = 0;
+  var glideTimer = null;
+  var endTimer = null;
+  var endTouches = 0;
   var leaving = false;
+  var countLabel = null;
+  var butterfly = null;
   var timers = [];
-  var idleTimer = null;
   var rafId = null;
-  var brushing = {};          // pointerId -> { x, brushed }
+  var brushing = {};
 
   function later(fn, ms) {
     timers.push(window.setTimeout(fn, ms));
@@ -82,6 +81,9 @@
     return arr;
   }
 
+  // World x of the current view's left edge.
+  function offset() { return index * geo.W; }
+
   function stageXY(e) {
     var r = stage.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -90,22 +92,22 @@
   /* ---------- drawing ---------- */
 
   function makeSoilSvg() {
-    var svg = svgEl('svg', { viewBox: '0 0 100 40', preserveAspectRatio: 'none' });
+    var svg = svgEl('svg', { viewBox: '0 0 100 30', preserveAspectRatio: 'none' });
     svg.appendChild(svgEl('path', {
-      d: 'M2 39 Q5 5 50 3 Q95 5 98 39 Z', fill: '#c3b494'
+      d: 'M1 29 Q4 3 50 2 Q96 3 99 29 Z', fill: '#c3b494'
     }));
     svg.appendChild(svgEl('path', {
-      d: 'M14 30 Q20 10 50 9 Q72 10 80 20 Q60 14 46 16 Q26 18 14 30 Z',
+      d: 'M12 22 Q20 7 50 6 Q74 7 84 14 Q60 10 46 11 Q24 13 12 22 Z',
       fill: 'rgba(255,255,255,0.16)'
     }));
     svg.appendChild(svgEl('path', {
-      d: 'M2 39 Q50 33 98 39 Z', fill: 'rgba(120, 100, 70, 0.18)'
+      d: 'M1 29 Q50 24 99 29 Z', fill: 'rgba(120, 100, 70, 0.18)'
     }));
     return svg;
   }
 
-  // One flower as a single SVG: a 100x100 head on top of a stem
-  // `stemUnits` long (same units), with a leaf partway down.
+  // A flower as one SVG: a 100x100 head over a stem `stemUnits`
+  // long (same units), with one leaf.
   function makeFlowerSvg(type, pal, stemUnits) {
     var h = 100 + stemUnits;
     var svg = svgEl('svg', { viewBox: '0 0 100 ' + h });
@@ -158,198 +160,251 @@
     return svg;
   }
 
-  /* ---------- layout ---------- */
+  /* ---------- layout: five beds along one long path ---------- */
 
   function layoutGarden() {
     var rect = stage.getBoundingClientRect();
-    layer.innerHTML = '';
-    mounds = [];
-    flowers = [];
-    butterflies = [];
-    planted = 0;
-    busy = false;
-    fullBloom = false;
-    interactions = 0;
-    leaving = false;
-    if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = null; }
-
     var W = rect.width, H = rect.height;
-    var spacing = W / MOUNDS;
     geo = {
       W: W, H: H,
-      mw: Math.min(spacing * 0.8, 190),
-      mh: Math.min(spacing * 0.8, 190) * 0.3,
-      hs: Math.max(38, Math.min(spacing * 0.34, H * 0.15, 78)),
-      moundY: H * 0.86
+      bw: Math.min(W * 0.5, 440),
+      bh: Math.max(26, H * 0.09),
+      hs: Math.max(40, Math.min(H * 0.17, 74)),
+      soilY: H * 0.9          // bottom edge of the soil
     };
+    geo.soilTop = geo.soilY - geo.bh;
+
+    world.innerHTML = '';
+    world.style.transition = 'none';
+    world.style.transform = 'translateX(0)';
+    beds = [];
+    index = 0;
+    phase = 'counting';
+
+    // stepping stones: the path from one bed to the next
+    for (var sx = 0; sx < geo.W * BEDS; sx += geo.W * 0.09) {
+      var local = sx % geo.W;
+      var nHere = Math.floor(sx / geo.W) + 1;
+      if (Math.abs(local - geo.W / 2) < bedWidth(nHere) / 2 + geo.W * 0.05) continue;
+      if (sx < geo.W / 2 || sx > geo.W * (BEDS - 0.5)) continue;
+      var st = document.createElement('span');
+      st.className = 'g-stone';
+      st.style.left = sx + 'px';
+      st.style.top = (geo.soilY - geo.bh * 0.2) + 'px';
+      world.appendChild(st);
+    }
 
     var looks = shuffle(PALETTES.slice());
-    for (var i = 0; i < MOUNDS; i++) {
-      var x = spacing * (i + 0.5);
-      var el = document.createElement('div');
-      el.className = 'g-mound';
-      el.style.left = x + 'px';
-      el.style.top = geo.moundY + 'px';
-      el.style.width = geo.mw + 'px';
-      el.style.height = (geo.mh * 2.2) + 'px';
-
-      var soil = document.createElement('div');
-      soil.className = 'g-soil';
-      soil.style.height = geo.mh + 'px';
-      soil.appendChild(makeSoilSvg());
-      el.appendChild(soil);
-
-      // Three seeds peek out of a bare mound, nodding: "plant me".
-      var seeds = document.createElement('div');
-      seeds.className = 'g-seeds';
-      seeds.style.bottom = (geo.mh * 0.78) + 'px';
-      for (var s = 0; s < 3; s++) {
-        var seed = document.createElement('span');
-        seed.style.animationDelay = (s * 0.18 + i * 0.3) + 's';
-        seeds.appendChild(seed);
-      }
-      el.appendChild(seeds);
-      layer.appendChild(el);
-
-      var mound = {
-        el: el, x: x, topY: geo.moundY + geo.mh * 1.1 - geo.mh,
-        planted: false, n: 0, flowers: [],
-        palette: looks[i], head: HEADS[i % HEADS.length]
-      };
-      attachMound(mound);
-      mounds.push(mound);
-    }
+    for (var i = 0; i < BEDS; i++) beds.push(makeBed(i, looks[i], HEADS[i % HEADS.length]));
   }
 
-  /* ---------- planting & counting ---------- */
-
-  function attachMound(mound) {
-    mound.el.addEventListener('pointerdown', function (e) {
-      e.preventDefault();
-      if (busy) { wiggle(mound.el); return; }
-      if (!mound.planted) plant(mound);
-      else recount(mound);
-      noteInteraction();
-    });
+  // Beds grow wider with their number: a small bed for one flower,
+  // the full bed for five.
+  function bedWidth(n) {
+    return geo.bw * (0.42 + 0.58 * (n - 1) / (BEDS - 1));
   }
 
-  function wiggle(el) {
-    el.classList.remove('is-wiggle');
-    void el.offsetWidth;
-    el.classList.add('is-wiggle');
-    ToddlAudio.tap();
-  }
+  function makeBed(i, palette, head) {
+    var n = i + 1;
+    var x = geo.W * (i + 0.5);
+    var bw = bedWidth(n);
+    var el = document.createElement('div');
+    el.className = 'g-bed';
+    el.style.left = x + 'px';
+    el.style.top = (geo.soilY - geo.bh * 1.9) + 'px';
+    el.style.width = bw + 'px';
+    el.style.height = (geo.bh * 1.9) + 'px';
+    var soil = document.createElement('div');
+    soil.className = 'g-soil';
+    soil.style.height = geo.bh + 'px';
+    soil.appendChild(makeSoilSvg());
+    el.appendChild(soil);
+    world.appendChild(el);
 
-  function plant(mound) {
-    busy = true;
-    planted++;
-    mound.planted = true;
-    mound.n = planted;
-    mound.el.classList.add('is-planted');
+    var bed = { i: i, n: n, x: x, bw: bw, el: el, palette: palette, head: head,
+                spots: [], flowers: [], grown: 0, sign: null };
 
-    rainOn(mound);
-    ToddlAudio.drip();
-
-    var n = mound.n;
-    var step = n > 1 ? Math.min(28, (geo.mw * 0.78) / (n - 1)) : 0;
+    var gap = n > 1 ? Math.min(bw * 0.78 / (n - 1), geo.hs * 1.45) : 0;
     for (var k = 0; k < n; k++) {
-      var off = (k - (n - 1) / 2) * step;
-      var edge = n > 1 ? Math.abs(off) / ((n - 1) / 2 * step) : 0;
-      var stemH = geo.H * (0.23 + (1 - edge) * 0.11) + (Math.random() - 0.5) * geo.H * 0.03;
-      var baseY = mound.topY + geo.mh * 0.35 + (k % 2 ? geo.mh * 0.18 : 0);
-      mound.flowers.push(makeFlower(mound, mound.x + off, baseY, stemH, off * 0.32));
+      var fx = x + (k - (n - 1) / 2) * gap;
+      var seed = document.createElement('span');
+      seed.className = 'g-seed';
+      seed.style.left = fx + 'px';
+      seed.style.top = (geo.soilTop + geo.bh * 0.22) + 'px';
+      seed.style.animationDelay = (k * 0.2) + 's';
+      world.appendChild(seed);
+      bed.spots.push({ x: fx, seed: seed });
     }
 
-    for (var c = 0; c < n; c++) {
-      later(countStep(mound, c, true), 520 + c * COUNT_STEP_MS);
+    el.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (bed.i !== index) return;
+      tapBed(bed);
+    });
+    return bed;
+  }
+
+  /* ---------- counting ---------- */
+
+  function tapBed(bed) {
+    if (phase === 'gliding' || leaving) return;
+    if (bed.grown < bed.n) {
+      var now = Date.now();
+      if (now - lastGrowAt < TAP_GAP_MS) return;
+      lastGrowAt = now;
+      growNext(bed);
+    } else if (!recounting) {
+      recount(bed);
+      touched();
     }
-    later(function () {
-      if (!stage) return;
-      busy = false;
-      plantMarker(mound);
-      if (window.ToddlFlow) ToddlFlow.extend();
-      if (planted === 2 || planted === 4) addButterfly();
-      if (planted === MOUNDS) later(bloomFinale, 700);
-    }, 520 + (n - 1) * COUNT_STEP_MS + 480);
   }
 
-  function recount(mound) {
-    busy = true;
-    for (var c = 0; c < mound.n; c++) {
-      later(countStep(mound, c, false), 60 + c * COUNT_STEP_MS);
+  function growNext(bed) {
+    var k = bed.grown;
+    var spot = bed.spots[k];
+    bed.grown++;
+    spot.seed.classList.add('is-sprouted');
+
+    var center = k - (bed.n - 1) / 2;
+    var middle = bed.n > 1 ? 1 - Math.abs(center) / ((bed.n - 1) / 2) : 1;
+    var stemH = geo.H * (0.3 + middle * 0.05);
+    var f = makeFlower(bed, spot.x, geo.soilTop + geo.bh * 0.3, stemH, center * 3);
+    bed.flowers.push(f);
+    // let the element land in the DOM first so the growth animates
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () { f.el.classList.add('is-grown'); });
+    });
+
+    ToddlAudio.countNote(k);
+    ToddlAudio.say(NUMBER_WORDS[k], { interrupt: true });
+    showCount(f, k + 1);
+    later(function () { if (stage) landOn(f); }, 350);
+
+    if (bed.grown === bed.n) {
+      phase = 'full';
+      later(function () { if (stage) completeBed(bed); }, 800);
     }
-    later(function () { busy = false; }, 60 + (mound.n - 1) * COUNT_STEP_MS + 480);
   }
 
-  // Count the c-th flower of a mound: grow it (when planting) or bob
-  // it (when recounting), ring a rising note, and say the number.
-  function countStep(mound, c, growing) {
-    return function () {
-      if (!stage) return;
-      var f = mound.flowers[c];
-      if (growing) f.el.classList.add('is-grown');
-      else boing(f);
-      ToddlAudio.countNote(c);
-      ToddlAudio.say(NUMBER_WORDS[c], { interrupt: true });
-      showCount(mound, c + 1);
-    };
+  function recount(bed) {
+    recounting = true;
+    bed.flowers.forEach(function (f, c) {
+      later(function () {
+        if (!stage) return;
+        boing(f);
+        ToddlAudio.countNote(c);
+        ToddlAudio.say(NUMBER_WORDS[c], { interrupt: true });
+        showCount(f, c + 1);
+      }, 60 + c * COUNT_STEP_MS);
+    });
+    later(function () { recounting = false; }, 60 + (bed.n - 1) * COUNT_STEP_MS + 480);
   }
 
-  var countLabel = null;
-
-  function showCount(mound, count) {
-    // one count bubble at a time, anywhere in the garden
+  // One count bubble at a time, always in the same calm spot.
+  function showCount(f, count) {
     if (countLabel && countLabel.parentNode) countLabel.parentNode.removeChild(countLabel);
-    var top = Infinity;
-    mound.flowers.forEach(function (f) { top = Math.min(top, f.hy - geo.hs * 0.5); });
     var label = document.createElement('div');
     label.className = 'count-label';
     label.textContent = String(count);
-    label.style.left = mound.x + 'px';
-    label.style.top = Math.max(geo.H * 0.13, top - geo.hs * 0.75) + 'px';
-    layer.appendChild(label);
+    label.style.left = (geo.W / 2) + 'px';
+    label.style.top = (geo.H * 0.17) + 'px';
+    overlay.appendChild(label);
     countLabel = label;
     later(function () {
       if (label.parentNode) label.parentNode.removeChild(label);
     }, 1900);
   }
 
-  function rainOn(mound) {
-    for (var d = 0; d < 7; d++) {
-      var drop = document.createElement('span');
-      drop.className = 'g-drop';
-      drop.style.left = (mound.x + (Math.random() - 0.5) * geo.mw * 0.6) + 'px';
-      drop.style.top = (mound.topY - geo.H * 0.2) + 'px';
-      drop.style.setProperty('--fall', (geo.H * 0.2) + 'px');
-      drop.style.animationDelay = (d * 0.06) + 's';
-      layer.appendChild(drop);
-      later((function (el) {
-        return function () { if (el.parentNode) el.parentNode.removeChild(el); };
-      })(drop), 900);
+  function completeBed(bed) {
+    var sign = document.createElement('div');
+    sign.className = 'g-marker';
+    sign.style.left = (bed.x + bed.bw / 2 + geo.hs * 0.2) + 'px';
+    sign.style.top = (geo.soilY - geo.bh * 0.05) + 'px';
+    sign.style.fontSize = Math.max(18, geo.hs * 0.5) + 'px';
+    sign.style.setProperty('--sign', bed.palette.petal);
+    var face = document.createElement('span');
+    face.className = 'g-marker-sign';
+    face.textContent = String(bed.n);
+    var stick = document.createElement('span');
+    stick.className = 'g-marker-stick';
+    sign.appendChild(face);
+    sign.appendChild(stick);
+    world.appendChild(sign);
+    bed.sign = sign;
+    ToddlAudio.chime();
+    if (window.ToddlFlow) ToddlFlow.extend();
+
+    fullAt = Date.now();
+    if (bed.i === BEDS - 1) finale(bed);
+    else armGlide(LINGER_MS);
+  }
+
+  // Play on a full bed pushes the glide back a little — up to a cap,
+  // so the walk always continues.
+  function armGlide(ms) {
+    if (glideTimer) window.clearTimeout(glideTimer);
+    var cap = fullAt + LINGER_MAX_MS - Date.now();
+    glideTimer = window.setTimeout(glideNext, Math.max(600, Math.min(ms, cap)));
+  }
+
+  function glideNext() {
+    glideTimer = null;
+    if (!stage || phase !== 'full') return;
+    phase = 'gliding';
+    if (countLabel && countLabel.parentNode) countLabel.parentNode.removeChild(countLabel);
+    index++;
+    world.style.transition = 'transform ' + GLIDE_MS + 'ms cubic-bezier(0.45, 0, 0.25, 1)';
+    world.style.transform = 'translateX(' + (-offset()) + 'px)';
+    // the butterfly friend flies along to wait at the next bed
+    restAtBed(beds[index], GLIDE_MS + 300, geo.H * 0.18);
+    later(function () {
+      if (!stage) return;
+      phase = 'counting';
+      lastGrowAt = 0;
+    }, GLIDE_MS);
+  }
+
+  /* ---------- the last bed ---------- */
+
+  function finale(bed) {
+    phase = 'done';
+    bed.flowers.forEach(function (f, i) {
+      later(function () {
+        if (!stage) return;
+        boing(f);
+        ToddlAudio.flowerNote(f.note, true);
+      }, 700 + i * 140);
+    });
+    armEnd();
+  }
+
+  function touched() {
+    if (phase === 'full') armGlide(LINGER_MS);
+    if (phase === 'done' && !leaving) {
+      endTouches++;
+      armEnd();
+      if (endTouches >= END_BUDGET) {
+        leaving = true;
+        later(moveOn, 2000);
+      }
     }
   }
 
-  function plantMarker(mound) {
-    var m = document.createElement('div');
-    m.className = 'g-marker';
-    // planted front-and-center in its own mound, like a seed label
-    m.style.left = mound.x + 'px';
-    m.style.top = (mound.topY + geo.mh * 1.05) + 'px';
-    m.style.fontSize = Math.max(16, geo.hs * 0.42) + 'px';
-    m.style.setProperty('--sign', mound.palette.petal);
-    var sign = document.createElement('span');
-    sign.className = 'g-marker-sign';
-    sign.textContent = String(mound.n);
-    var stick = document.createElement('span');
-    stick.className = 'g-marker-stick';
-    m.appendChild(sign);
-    m.appendChild(stick);
-    layer.appendChild(m);
+  function armEnd() {
+    if (endTimer) window.clearTimeout(endTimer);
+    endTimer = window.setTimeout(moveOn, END_IDLE_MS);
+  }
+
+  function moveOn() {
+    if (!stage) return;
+    if (endTimer) { window.clearTimeout(endTimer); endTimer = null; }
+    if (window.ToddlFlow) { ToddlFlow.next(); return; }
+    restart();
   }
 
   /* ---------- flowers ---------- */
 
-  function makeFlower(mound, x, baseY, stemH, fanDeg) {
+  function makeFlower(bed, x, baseY, stemH, fanDeg) {
     var hs = geo.hs;
     var el = document.createElement('div');
     el.className = 'g-flower';
@@ -357,7 +412,6 @@
     el.style.top = baseY + 'px';
     el.style.width = hs + 'px';
     el.style.height = (hs + stemH) + 'px';
-    el.style.zIndex = String(Math.round(baseY));
     el.style.transform = 'translate(-50%, -100%) rotate(' + fanDeg + 'deg)';
 
     var grow = document.createElement('div');
@@ -368,31 +422,28 @@
     sway.style.animationDelay = (-Math.random() * 5) + 's';
     var lean = document.createElement('div');
     lean.className = 'g-lean';
-    lean.appendChild(makeFlowerSvg(mound.head, mound.palette, stemH / hs * 100));
+    lean.appendChild(makeFlowerSvg(bed.head, bed.palette, stemH / hs * 100));
     sway.appendChild(lean);
     grow.appendChild(sway);
     el.appendChild(grow);
-    layer.appendChild(el);
+    world.appendChild(el);
 
     var fan = fanDeg * Math.PI / 180;
     var reach = stemH + hs * 0.5;
     var f = {
-      el: el, lean: lean, mound: mound,
-      hx: x + Math.sin(fan) * reach,
-      hy: baseY - Math.cos(fan) * reach,
-      cool: 0
+      el: el, lean: lean, bed: bed, cool: 0,
+      hx: x + Math.sin(fan) * reach,          // world coords
+      hy: baseY - Math.cos(fan) * reach
     };
-    f.note = Math.round(f.hx / geo.W * 9);
-    flowers.push(f);
+    f.note = Math.round(((f.hx - bed.x) / bed.bw + 0.5) * 7) + 1;
 
     el.addEventListener('pointerdown', function (e) {
-      if (!el.classList.contains('is-grown')) return;
+      if (bed.i !== index || phase === 'gliding') return;
       e.preventDefault();
       boing(f);
       f.cool = Date.now() + 400;
       ToddlAudio.flowerNote(f.note);
-      petalPuff(f);
-      noteInteraction();
+      touched();
     });
     return f;
   }
@@ -403,33 +454,19 @@
     f.lean.classList.add('is-boing');
   }
 
-  function petalPuff(f) {
-    for (var p = 0; p < 4; p++) {
-      var pet = document.createElement('span');
-      pet.className = 'g-petal';
-      pet.style.left = f.hx + 'px';
-      pet.style.top = f.hy + 'px';
-      pet.style.background = f.mound.palette.petal;
-      pet.style.setProperty('--dx', ((Math.random() - 0.5) * geo.hs * 2.2) + 'px');
-      pet.style.setProperty('--dy', (geo.hs * (0.6 + Math.random() * 1.2)) + 'px');
-      pet.style.setProperty('--rot', ((Math.random() - 0.5) * 540) + 'deg');
-      layer.appendChild(pet);
-      later((function (el) {
-        return function () { if (el.parentNode) el.parentNode.removeChild(el); };
-      })(pet), 1700);
-    }
-  }
-
-  // A finger brushing through the meadow: every flower it passes
-  // leans away from the motion and springs back, chiming softly.
+  // A finger brushing through the bed: flowers lean away from the
+  // motion and spring back, chiming softly as it passes.
   function brushAt(pt, dir) {
+    if (phase === 'gliding' || !beds[index]) return false;
     var now = Date.now();
     var hit = false;
-    var reach = geo.hs * 0.75;
-    for (var i = 0; i < flowers.length; i++) {
-      var f = flowers[i];
-      if (f.cool > now || !f.el.classList.contains('is-grown')) continue;
-      var dx = pt.x - f.hx, dy = pt.y - f.hy;
+    var reach = geo.hs * 0.8;
+    var wx = pt.x + offset();
+    var fl = beds[index].flowers;
+    for (var i = 0; i < fl.length; i++) {
+      var f = fl[i];
+      if (f.cool > now) continue;
+      var dx = wx - f.hx, dy = pt.y - f.hy;
       if (dx * dx + dy * dy > reach * reach) continue;
       f.cool = now + 450;
       f.lean.style.setProperty('--lean', (dir * 16) + 'deg');
@@ -444,8 +481,7 @@
   }
 
   function onStageDown(e) {
-    var pt = stageXY(e);
-    brushing[e.pointerId] = { x: pt.x, brushed: false };
+    brushing[e.pointerId] = { x: stageXY(e).x, brushed: false };
   }
 
   function onStageMove(e) {
@@ -461,132 +497,94 @@
   function onStageUp(e) {
     var b = brushing[e.pointerId];
     delete brushing[e.pointerId];
-    if (b && b.brushed) noteInteraction();
+    if (b && b.brushed) touched();
   }
 
-  /* ---------- butterflies ---------- */
+  /* ---------- the butterfly friend ---------- */
 
-  function grownFlowers() {
-    return flowers.filter(function (f) { return f.el.classList.contains('is-grown'); });
-  }
-
-  function addButterfly() {
-    if (!stage || butterflies.length >= 3) return;
-    var targets = grownFlowers();
-    if (!targets.length) return;
+  function makeButterfly() {
     var el = document.createElement('div');
     el.className = 'g-butterfly';
-    el.style.fontSize = Math.max(30, geo.hs * 0.85) + 'px';
+    el.style.fontSize = Math.max(30, geo.hs * 0.8) + 'px';
     var wings = document.createElement('span');
     wings.className = 'g-wings';
     wings.textContent = '\u{1F98B}';
-    wings.style.filter = 'hue-rotate(' + BUTTERFLY_HUES[butterflies.length % BUTTERFLY_HUES.length] + 'deg)';
     el.appendChild(wings);
-    layer.appendChild(el);
-
-    var fromLeft = Math.random() < 0.5;
-    var b = {
-      el: el, x: fromLeft ? -60 : geo.W + 60, y: geo.H * (0.2 + Math.random() * 0.15),
-      flying: false, perch: null, restUntil: 0
-    };
-    butterflies.push(b);
-    flyTo(b, targets[Math.floor(Math.random() * targets.length)], geo.H * 0.12);
+    overlay.appendChild(el);
+    butterfly = { el: el, x: -60, y: geo.H * 0.3, flying: false, perch: null };
 
     el.addEventListener('pointerdown', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      if (b.flying) return;
-      // Shoo! Off it flutters, looping high, to find another flower.
-      var others = grownFlowers().filter(function (f) { return f !== b.perch; });
-      if (!others.length) return;
-      flyTo(b, others[Math.floor(Math.random() * others.length)], geo.H * 0.3);
-      ToddlAudio.flowerNote(8);
+      if (butterfly.flying || phase === 'gliding') return;
+      // Off it flutters, looping, to another flower in this bed.
+      var fl = beds[index].flowers.filter(function (f) { return f !== butterfly.perch; });
+      if (fl.length) landOn(fl[Math.floor(Math.random() * fl.length)], geo.H * 0.25);
+      else restAtBed(beds[index], 1400, geo.H * 0.2);
+      ToddlAudio.flowerNote(7);
       later(function () { ToddlAudio.flowerNote(9); }, 120);
-      noteInteraction();
+      touched();
     });
   }
 
-  function flyTo(b, flower, arc) {
+  function landOn(f, arc) {
+    flyTo(f.hx - offset(), f.hy - geo.hs * 0.42, arc || geo.H * 0.08, null);
+    butterfly.perch = f;
+  }
+
+  // Wait on the soil at the left end of a bed (bed is the current one).
+  function restAtBed(bed, dur, arc) {
+    flyTo(bed.x - bed.bw * 0.5 + geo.hs * 0.25 - offset(), geo.soilTop - 2, arc, dur);
+    butterfly.perch = null;
+  }
+
+  function flyTo(x, y, arc, dur) {
+    var b = butterfly;
     b.fromX = b.x; b.fromY = b.y;
-    b.perch = flower;
-    b.toX = flower.hx;
-    b.toY = flower.hy - geo.hs * 0.42;
-    var dist = Math.sqrt(Math.pow(b.toX - b.fromX, 2) + Math.pow(b.toY - b.fromY, 2));
+    b.toX = x; b.toY = y;
+    var dist = Math.sqrt(Math.pow(x - b.x, 2) + Math.pow(y - b.y, 2));
     b.t0 = performance.now();
-    b.dur = 1400 + dist * 3.2;
+    b.dur = dur || Math.min(1500, 700 + dist * 2.2);
     b.arc = arc;
     b.flying = true;
     b.el.classList.remove('is-landed');
   }
 
-  function tickButterflies(now) {
-    for (var i = 0; i < butterflies.length; i++) {
-      var b = butterflies[i];
-      if (b.flying) {
-        var p = Math.min(1, (now - b.t0) / b.dur);
-        var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-        b.x = b.fromX + (b.toX - b.fromX) * e + Math.sin(now / 160) * 6 * (1 - p);
-        b.y = b.fromY + (b.toY - b.fromY) * e - Math.sin(Math.PI * p) * b.arc +
-              Math.sin(now / 110) * 5 * (1 - p);
-        if (p >= 1) {
-          b.flying = false;
-          b.x = b.toX; b.y = b.toY;
-          b.restUntil = now + 4000 + Math.random() * 5000;
-          b.el.classList.add('is-landed');
-        }
-      } else if (now > b.restUntil) {
-        var others = grownFlowers().filter(function (f) { return f !== b.perch; });
-        if (others.length) flyTo(b, others[Math.floor(Math.random() * others.length)], geo.H * 0.1);
+  function tick(now) {
+    var b = butterfly;
+    if (b && b.flying) {
+      var p = Math.min(1, (now - b.t0) / b.dur);
+      var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      b.x = b.fromX + (b.toX - b.fromX) * e + Math.sin(now / 160) * 5 * (1 - p);
+      b.y = b.fromY + (b.toY - b.fromY) * e - Math.sin(Math.PI * p) * b.arc +
+            Math.sin(now / 110) * 4 * (1 - p);
+      if (p >= 1) {
+        b.flying = false;
+        b.x = b.toX; b.y = b.toY;
+        b.el.classList.add('is-landed');
       }
-      b.el.style.transform = 'translate(' + b.x + 'px,' + b.y + 'px) translate(-50%, -70%)';
     }
-    rafId = window.requestAnimationFrame(tickButterflies);
-  }
-
-  /* ---------- full bloom & moving on ---------- */
-
-  function bloomFinale() {
-    if (!stage) return;
-    fullBloom = true;
-    ToddlAudio.chime();
-    addButterfly();
-    // The whole garden ripples, left to right, in a rising glissando.
-    var row = flowers.slice().sort(function (a, b) { return a.hx - b.hx; });
-    row.forEach(function (f, i) {
-      later(function () {
-        if (!stage) return;
-        boing(f);
-        ToddlAudio.flowerNote(f.note, true);
-      }, 900 + i * 90);
-    });
-    if (window.ToddlFlow) ToddlFlow.extend();
-    armIdle();
-  }
-
-  function noteInteraction() {
-    if (!fullBloom || leaving) return;
-    interactions++;
-    if (window.ToddlFlow) ToddlFlow.extend();
-    armIdle();
-    if (interactions >= PLAY_BUDGET) {
-      leaving = true;
-      later(moveOn, 2200);
-    }
-  }
-
-  function armIdle() {
-    if (idleTimer) window.clearTimeout(idleTimer);
-    idleTimer = window.setTimeout(moveOn, IDLE_MS);
-  }
-
-  function moveOn() {
-    if (!stage) return;
-    if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = null; }
-    if (window.ToddlFlow) { ToddlFlow.next(); return; }
-    layoutGarden();
+    if (b) b.el.style.transform = 'translate(' + b.x + 'px,' + b.y + 'px) translate(-50%, -70%)';
+    rafId = window.requestAnimationFrame(tick);
   }
 
   /* ---------- lifecycle ---------- */
+
+  function restart() {
+    timers.forEach(function (id) { window.clearTimeout(id); });
+    timers = [];
+    if (glideTimer) { window.clearTimeout(glideTimer); glideTimer = null; }
+    if (endTimer) { window.clearTimeout(endTimer); endTimer = null; }
+    overlay.innerHTML = '';
+    countLabel = null;
+    recounting = false;
+    leaving = false;
+    endTouches = 0;
+    lastGrowAt = 0;
+    layoutGarden();
+    makeButterfly();
+    restAtBed(beds[0], 1600, geo.H * 0.15);
+  }
 
   function start(stageEl) {
     stage = stageEl;
@@ -599,23 +597,26 @@
       hills: { front: 'rgba(183, 201, 168, 0.55)', back: 'rgba(212, 185, 106, 0.28)',
                height: '34%' }
     });
-    layer = document.createElement('div');
-    layer.style.position = 'absolute';
-    layer.style.inset = '0';
-    stage.appendChild(layer);
+    world = document.createElement('div');
+    world.className = 'g-world';
+    stage.appendChild(world);
+    overlay = document.createElement('div');
+    overlay.className = 'g-overlay';
+    stage.appendChild(overlay);
     brushing = {};
     stage.addEventListener('pointerdown', onStageDown);
     stage.addEventListener('pointermove', onStageMove);
     stage.addEventListener('pointerup', onStageUp);
     stage.addEventListener('pointercancel', onStageUp);
-    window.requestAnimationFrame(layoutGarden);
-    rafId = window.requestAnimationFrame(tickButterflies);
+    window.requestAnimationFrame(function () { if (stage) restart(); });
+    rafId = window.requestAnimationFrame(tick);
   }
 
   function stop() {
     timers.forEach(function (id) { window.clearTimeout(id); });
     timers = [];
-    if (idleTimer) { window.clearTimeout(idleTimer); idleTimer = null; }
+    if (glideTimer) { window.clearTimeout(glideTimer); glideTimer = null; }
+    if (endTimer) { window.clearTimeout(endTimer); endTimer = null; }
     if (rafId) { window.cancelAnimationFrame(rafId); rafId = null; }
     if (stage) {
       stage.removeEventListener('pointerdown', onStageDown);
@@ -625,14 +626,12 @@
       stage.innerHTML = '';
     }
     stage = null;
-    layer = null;
-    mounds = [];
-    flowers = [];
-    butterflies = [];
+    world = null;
+    overlay = null;
+    beds = [];
+    butterfly = null;
+    countLabel = null;
     brushing = {};
-    planted = 0;
-    busy = false;
-    fullBloom = false;
   }
 
   window.ToddlGarden = { start: start, stop: stop };
