@@ -96,15 +96,15 @@
       g.className = 'key-glint';
       g.style.left = (5 + Math.random() * 90) + '%';
       g.style.top = (5 + Math.random() * 90) + '%';
-      var s = 5 + Math.random() * 11;
+      var s = 7 + Math.random() * 12;
       g.style.width = s + 'px';
       g.style.height = s + 'px';
       g.style.setProperty('--rot', Math.floor(Math.random() * 90) + 'deg');
       g.style.animationDuration = (0.8 + Math.random() * 1.1) + 's';
       g.style.animationDelay = (-Math.random() * 2) + 's';
       var tint = Math.random();
-      g.style.color = tint < 0.5 ? '#fff3d4'
-                    : tint < 0.8 ? '#d7efff' : '#ffdfef';
+      g.style.color = tint < 0.5 ? '#ffd257'
+                    : tint < 0.8 ? '#79ccff' : '#ff9fd3';
       sh.appendChild(g);
     }
     el.appendChild(sh);

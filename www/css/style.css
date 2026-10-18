@@ -1248,6 +1248,15 @@ button {
   position: relative;
   overflow: hidden;
   filter: brightness(1.05) saturate(1.12);
+  /* The whole key takes a wash of its own band color, so the hinted
+     key clearly stands apart from its white neighbors and the pale
+     scene — and the sparkles get a tinted ground to pop against. */
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--key-color) 30%, #ffffff) 0%,
+    color-mix(in srgb, var(--key-color) 52%, #fdf9f0) 78%,
+    var(--key-color) 78.5%,
+    var(--key-color) 100%);
+  border-color: color-mix(in srgb, var(--key-deep) 55%, #ddd5c6);
 }
 
 .key-shimmer {
@@ -1258,11 +1267,11 @@ button {
   pointer-events: none;
   background:
     radial-gradient(ellipse 60% 42% at 30% 28%,
-      rgba(255, 234, 164, 0.42), transparent 70%),
+      rgba(255, 224, 120, 0.65), transparent 70%),
     radial-gradient(ellipse 52% 62% at 72% 58%,
-      rgba(168, 219, 255, 0.34), transparent 70%),
+      rgba(140, 210, 255, 0.55), transparent 70%),
     radial-gradient(ellipse 70% 50% at 48% 86%,
-      rgba(255, 206, 233, 0.28), transparent 72%);
+      rgba(255, 185, 225, 0.48), transparent 72%);
   background-size: 230% 230%, 210% 210%, 250% 250%;
   animation: water-light 3.4s ease-in-out infinite alternate;
 }
@@ -1273,14 +1282,18 @@ button {
   100% { background-position: 25% 100%, 65% 0%, 0% 55%; }
 }
 
-/* One scale catching the sun: a tiny diamond flaring in and out. */
+/* One scale catching the sun: a diamond with a hot white core, a
+   colored halo, and a faint dark rim so it reads on ANY ground. */
 .key-glint {
   position: absolute;
-  background: currentColor;
+  background: radial-gradient(circle at 50% 50%,
+    #ffffff 0%, #ffffff 35%, currentColor 100%);
   border-radius: 20%;
   opacity: 0;
   transform: translate(-50%, -50%) rotate(var(--rot, 45deg)) scale(0.25);
-  box-shadow: 0 0 7px 2px currentColor;
+  box-shadow:
+    0 0 10px 3px currentColor,
+    0 0 3px 1px rgba(91, 84, 76, 0.35);
   animation: glint-twinkle 1.3s ease-in-out infinite;
 }
 
@@ -1290,8 +1303,8 @@ button {
     transform: translate(-50%, -50%) rotate(var(--rot, 45deg)) scale(0.25);
   }
   50% {
-    opacity: 0.95;
-    transform: translate(-50%, -50%) rotate(var(--rot, 45deg)) scale(1);
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot, 45deg)) scale(1.15);
   }
 }
 
