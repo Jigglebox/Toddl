@@ -347,6 +347,21 @@
     tone(freq, { dur: 0.55, vol: 0.45 });
   }
 
+  // A garden flower's voice: a music-box bell, pitched by where the
+  // flower stands (low on the left, high on the right).
+  function flowerNote(index, soft) {
+    if (!settings.sound || !ensureContext()) return;
+    var i = Math.max(0, Math.min(PENTATONIC.length - 1, index));
+    bellNote(PENTATONIC[i], soft ? 0.06 : 0.13);
+  }
+
+  // Water drops pattering onto soil.
+  function drip() {
+    tone(1046.5, { dur: 0.16, vol: 0.12, glideTo: 698.5 });
+    tone(880, { dur: 0.16, vol: 0.10, glideTo: 587.3, delay: 0.13 });
+    tone(987.8, { dur: 0.14, vol: 0.08, glideTo: 659.3, delay: 0.27 });
+  }
+
   /* ---------- Spoken words ----------
      Every word in the app ships as a pre-recorded natural voice
      clip (audio/words/*.mp3) — calm, warm, and consistent on
@@ -536,6 +551,8 @@
     setNightMode: setNightMode,
     pianoNote: pianoNote,
     countNote: countNote,
+    flowerNote: flowerNote,
+    drip: drip,
     say: say,
     getSetting: function (key) { return settings[key]; },
     setSetting: function (key, value) {

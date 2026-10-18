@@ -44,7 +44,7 @@ every single thing that happens on screen — not from spectacle.
    child's own actions.
 10. **Play flows by itself, always.** When an activity reaches a natural
     resting point (eight bubbles popped, two puzzles done, two sorts
-    done, the garden fully bloomed), the next activity gently crossfades
+    done, the garden bloomed and played in), the next activity gently crossfades
     in — bubbles → shapes → colors → garden → bubbles. And if a child
     just pokes around without finishing anything, a 70-second visit
     timer rotates play anyway, so there is *always* something new to do
@@ -139,14 +139,38 @@ the same bright golden flash.
 - *Colors used:* muted red, blue, yellow, green — a rotating random pair
   each round.
 
-### 4. Garden — counting 1–5
-Five soil mounds. Tap one and a flower grows slowly out of it while Toddl
-counts aloud: "one… two…". Each tap = one flower = one number (one-to-one
-correspondence). When all five bloom, a butterfly drifts across and the
-garden quietly resets with new flower colors.
+### 4. Garden — counting 1–5, then a living garden to play in
+Five bare soil mounds, each with three seeds nodding on top ("plant me").
+Tap one and water patters onto it, then it grows **as many flowers as its
+number**: the first mound planted grows one flower, the next grows two, up
+to five — each flower springing up as Toddl counts it aloud ("one… two…
+three…") with a rising note and a big count bubble. When the count is done,
+a little marker with the numeral plants itself front-and-center in the soil,
+so the finished garden reads 1 2 3 4 5 with the matching number of flowers
+behind each sign. Mounds can be planted in any order; each new one is
+simply the next number. Tap a planted mound and Toddl counts its flowers
+again, each one bobbing as it's counted.
 
-- *Teaches:* counting 1–5, one-to-one correspondence, patience (the growth
-  animation takes 1.4 s and rewards watching).
+Then the garden is alive, for open, imaginative play:
+- **Every flower sings.** Tap one and it boings, puffs loose a few petals,
+  and rings a music-box note — low on the left, high on the right, so the
+  whole meadow is an instrument.
+- **Wind through the meadow.** Brush a finger across the flowers and they
+  lean away from the motion and spring back, chiming softly as you pass —
+  sweep left to right for a rising scale.
+- **Butterflies visit.** They arrive as the garden fills (after the 2nd
+  and 4th mounds, and at full bloom), drift from flower to flower, and
+  rest with slow wingbeats. Tap one and it flutters off, looping high, to
+  find another flower — something to follow and chase.
+- **Full bloom** brings a chime and a rippling left-to-right glissando
+  across all fifteen flowers.
+
+- *Teaches:* counting 1–5 with true quantity (numeral, spoken word, and the
+  number of flowers always agree — one-to-one correspondence), recounting to
+  check, cause-and-effect, pitch direction.
+- *Flow:* each completed mound extends the visit; after full bloom the
+  child plays freely, and the next activity drifts in after a good stretch
+  of garden play (~28 touches) or 15 quiet seconds.
 
 ### 5. Piano — letters & pitch
 Eight big white keys, C to C, each wearing its letter on a Boomwhacker-

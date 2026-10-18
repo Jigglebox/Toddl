@@ -1083,34 +1083,182 @@ button {
       #f6e8d8 0%, #f6eedd 30%, #f3f0e2 58%, #e9e9d3 100%);
 }
 
-.garden-mound {
+/* Soil mounds: the whole mound (and a margin above it) is the
+   tap target; the soil is drawn along its bottom edge. */
+.g-mound {
   position: absolute;
   transform: translate(-50%, -50%);
+  z-index: 1;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.g-mound.is-wiggle { animation: mound-wiggle 0.45s var(--ease-spring); }
+
+@keyframes mound-wiggle {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0); }
+  30%      { transform: translate(-50%, -50%) rotate(-2.5deg); }
+  65%      { transform: translate(-50%, -50%) rotate(2deg); }
+}
+
+.g-soil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.g-soil svg { width: 100%; height: 100%; display: block; }
+
+/* Seeds nodding on a bare mound: "plant me" */
+.g-seeds {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  gap: 7px;
+  transition: opacity 0.4s var(--ease-gentle);
 }
 
-.garden-mound svg { width: 100%; height: 100%; overflow: visible; }
+.g-seeds span {
+  width: 10px;
+  height: 14px;
+  border-radius: 50% 50% 45% 45%;
+  background: #8c7655;
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.12);
+  animation: seed-nod 1.8s ease-in-out infinite;
+}
 
-/* Grow slowly out of the soil, then sway forever in the breeze */
-.garden-mound .flower {
-  transform-box: fill-box;
+.g-seeds span:nth-child(2) { transform: translateY(-4px); }
+
+@keyframes seed-nod {
+  0%, 100% { translate: 0 0; rotate: -8deg; }
+  50%      { translate: 0 -5px; rotate: 8deg; }
+}
+
+.g-mound.is-planted .g-seeds { opacity: 0; }
+
+/* Water patters onto a freshly planted mound */
+.g-drop {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: rgba(148, 196, 230, 0.85);
+  pointer-events: none;
+  z-index: 3000;
+  opacity: 0;
+  animation: drop-fall 0.6s ease-in forwards;
+}
+
+@keyframes drop-fall {
+  0%   { opacity: 0; transform: translateY(0); }
+  20%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(var(--fall)) scaleY(0.6); }
+}
+
+/* Flowers: four nested layers, each owning one transform —
+   placement/fan, growth, breeze, and touch (lean / boing). */
+.g-flower {
+  position: absolute;
+  transform-origin: 50% 100%;
+  touch-action: none;
+}
+
+.g-grow, .g-sway, .g-lean {
+  position: absolute;
+  inset: 0;
   transform-origin: 50% 100%;
 }
 
-.garden-mound .flower-sway {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+.g-lean svg { width: 100%; height: 100%; display: block; }
+
+.g-grow {
+  transform: scale(0);
+  transition: transform 0.9s cubic-bezier(0.34, 1.45, 0.5, 1);
 }
 
-.garden-mound.is-bloomed .flower-sway {
-  animation: flower-sway 5.5s ease-in-out infinite alternate;
-}
+.g-flower.is-grown .g-grow { transform: scale(1); }
+
+.g-sway { animation: flower-sway 5.5s ease-in-out infinite alternate; }
 
 @keyframes flower-sway {
   from { transform: rotate(-2.4deg); }
   to   { transform: rotate(2.4deg); }
+}
+
+.g-lean { transition: transform 0.55s var(--ease-spring); }
+
+.g-lean.is-brushed {
+  transform: rotate(var(--lean, 14deg));
+  transition-duration: 0.12s;
+}
+
+.g-lean.is-boing { animation: flower-boing 0.6s var(--ease-spring); }
+
+@keyframes flower-boing {
+  0%   { transform: scale(1, 1); }
+  30%  { transform: scale(1.08, 0.88); }
+  60%  { transform: scale(0.95, 1.07); }
+  100% { transform: scale(1, 1); }
+}
+
+/* Petals puffed loose by a tap, tumbling down */
+.g-petal {
+  position: absolute;
+  width: 10px;
+  height: 7px;
+  border-radius: 60% 40% 60% 40%;
+  pointer-events: none;
+  z-index: 3000;
+  animation: petal-tumble 1.6s var(--ease-gentle) forwards;
+}
+
+@keyframes petal-tumble {
+  0%   { opacity: 0.95; transform: translate(-50%, -50%) rotate(0); }
+  100% { opacity: 0;
+         transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+                    rotate(var(--rot)); }
+}
+
+/* The numeral marker a mound earns once its flowers are counted */
+.g-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2500;
+  animation: marker-pop 0.6s var(--ease-spring) both;
+}
+
+.g-marker-sign {
+  min-width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--sign, #f3e9d2) 45%, #fffaf0);
+  border: 2px solid rgba(140, 118, 85, 0.55);
+  box-shadow: 0 2px 6px rgba(91, 84, 76, 0.2);
+}
+
+.g-marker-stick {
+  width: 5px;
+  height: 1.1em;
+  background: #b59a72;
+  border-radius: 0 0 3px 3px;
+}
+
+@keyframes marker-pop {
+  0%   { opacity: 0; transform: translate(-50%, -60%) scale(0.4); }
+  60%  { opacity: 1; transform: translate(-50%, -104%) scale(1.1); }
+  100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 }
 
 .count-label {
@@ -1129,7 +1277,7 @@ button {
   box-shadow: var(--card-shadow);
   pointer-events: none;
   animation: count-spring 1.9s var(--ease-gentle) forwards;
-  z-index: 10;
+  z-index: 4000;
 }
 
 @keyframes count-spring {
@@ -1140,21 +1288,33 @@ button {
   100% { opacity: 0; transform: translate(-50%, -58%) scale(1); }
 }
 
-.butterfly {
+
+/* Visiting butterflies: drift between flowers, rest with slow
+   wingbeats, flutter off when tapped. */
+.g-butterfly {
   position: absolute;
-  pointer-events: none;
-  z-index: 15;
+  left: 0;
+  top: 0;
+  z-index: 3500;
+  padding: 10px;
+  margin: -10px;
   will-change: transform;
+  touch-action: none;
+  cursor: pointer;
 }
 
-.butterfly-inner {
+.g-wings {
   display: inline-block;
-  animation: flutter 0.5s ease-in-out infinite alternate;
+  animation: flutter 0.22s ease-in-out infinite alternate;
+}
+
+.g-butterfly.is-landed .g-wings {
+  animation-duration: 1.3s;
 }
 
 @keyframes flutter {
   from { transform: scaleX(1) rotate(-4deg); }
-  to   { transform: scaleX(0.78) rotate(4deg); }
+  to   { transform: scaleX(0.72) rotate(4deg); }
 }
 
 /* Gentle celebration stars, shared by games */
