@@ -1,11 +1,15 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v19';
+var CACHE = 'toddl-v20';
 var WORDS = ['dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
   'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
   'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
-  'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four', 'five'];
+  'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four', 'five',
+  'spring', 'summer', 'autumn', 'winter',
+  'pea', 'radish', 'lettuce', 'carrot', 'tomato', 'corn', 'watermelon',
+  'blueberry', 'cucumber', 'pumpkin', 'grapes', 'beet', 'broccoli',
+  'cabbage', 'orange', 'turnip', 'leek', 'kale'];
 var ASSETS = [
   '.',
   'index.html',

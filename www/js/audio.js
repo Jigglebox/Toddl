@@ -355,6 +355,56 @@
     bellNote(PENTATONIC[i], soft ? 0.06 : 0.13);
   }
 
+  // Water pouring from the watering can: a soft looped burble of
+  // filtered noise, faded in and out. One pour at a time.
+  var pour = null;
+
+  function pourStart() {
+    if (!settings.sound || !ensureContext() || pour) return;
+    var t0 = ctx.currentTime;
+    var len = Math.floor(ctx.sampleRate * 1.5);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1700;
+    bp.Q.value = 0.8;
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 3400;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.07, t0 + 0.18);
+    // a slow wobble on the filter is the burble
+    var lfo = ctx.createOscillator();
+    lfo.frequency.value = 5.5;
+    var lg = ctx.createGain();
+    lg.gain.value = 450;
+    lfo.connect(lg); lg.connect(bp.frequency);
+    src.connect(bp); bp.connect(lp); lp.connect(g); g.connect(master);
+    lfo.start(t0);
+    src.start(t0);
+    pour = { src: src, g: g, lfo: lfo };
+  }
+
+  function pourStop() {
+    if (!pour || !ctx) return;
+    var p = pour;
+    pour = null;
+    var t = ctx.currentTime;
+    try {
+      p.g.gain.cancelScheduledValues(t);
+      p.g.gain.setValueAtTime(Math.max(p.g.gain.value, 0.0001), t);
+      p.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      p.src.stop(t + 0.3);
+      p.lfo.stop(t + 0.3);
+    } catch (e) { /* already stopped */ }
+  }
+
   // Water drops pattering onto soil.
   function drip() {
     tone(1046.5, { dur: 0.16, vol: 0.12, glideTo: 698.5 });
@@ -373,7 +423,12 @@
     'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
     'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
     'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four',
-    'five'
+    'five',
+    // the seasonal garden's crops and seasons
+    'spring', 'summer', 'autumn', 'winter',
+    'pea', 'radish', 'lettuce', 'carrot', 'tomato', 'corn', 'watermelon',
+    'blueberry', 'cucumber', 'pumpkin', 'grapes', 'beet', 'broccoli',
+    'cabbage', 'orange', 'turnip', 'leek', 'kale'
   ];
 
   var clipCache = {};
@@ -507,6 +562,7 @@
 
   function hush() {
     stopMusic();
+    pourStop();
     if (ctx && ctx.state === 'running') {
       try { ctx.suspend(); } catch (e) { /* ok */ }
     }
@@ -553,6 +609,8 @@
     countNote: countNote,
     flowerNote: flowerNote,
     drip: drip,
+    pourStart: pourStart,
+    pourStop: pourStop,
     say: say,
     getSetting: function (key) { return settings[key]; },
     setSetting: function (key, value) {

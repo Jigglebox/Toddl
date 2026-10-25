@@ -1078,220 +1078,280 @@ button {
 /* ============ Garden ============ */
 
 #screen-garden .game-stage {
-  background:
-    linear-gradient(180deg,
-      #f6e8d8 0%, #f6eedd 30%, #f3f0e2 58%, #e9e9d3 100%);
+  background: linear-gradient(180deg, #f6e8d8 0%, #f6eedd 30%, #f3f0e2 58%, #e9e9d3 100%);
 }
 
-/* The garden path: a long world that glides one bed at a time,
-   and an overlay (count bubble, butterfly) fixed to the screen. */
-.g-world {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  will-change: transform;
+/* The sky and ground take the season's colors */
+#screen-garden .game-stage[data-season="spring"] {
+  background: linear-gradient(180deg, #e3eefb 0%, #f1f2e8 42%, #f6f0dc 70%, #dfe9c6 100%);
 }
 
-.g-overlay {
+#screen-garden .game-stage[data-season="summer"] {
+  background: linear-gradient(180deg, #cfe4f7 0%, #e8eedd 45%, #f7edcf 72%, #e3e4b6 100%);
+}
+
+#screen-garden .game-stage[data-season="autumn"] {
+  background: linear-gradient(180deg, #efd9c0 0%, #f6e6d0 40%, #f4e2c4 70%, #e2cfa6 100%);
+}
+
+#screen-garden .game-stage[data-season="winter"] {
+  background: linear-gradient(180deg, #dfe6ee 0%, #eef2f6 45%, #f7f8fa 72%, #ffffff 100%);
+}
+
+.g-layer {
   position: absolute;
   inset: 0;
+}
+
+/* Drifting season particles: blossom petals, falling leaves, snow */
+.g-flakes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.g-overlay > * { pointer-events: auto; }
-.g-overlay > .count-label { pointer-events: none; }
+.g-flake {
+  position: absolute;
+  top: -6%;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  opacity: 0.85;
+  animation-name: flake-fall, flake-sway;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: normal, alternate;
+}
 
-/* A garden bed: the whole bed (and a margin above it) is the tap
-   target; the soil is drawn along its bottom edge. */
+.g-flake-petal {
+  background: #f3bfcf;
+  border-radius: 60% 60% 60% 60% / 90% 90% 30% 30%;
+  rotate: 25deg;
+}
+
+.g-flake-leaf {
+  background: #e0954c;
+  border-radius: 80% 0 80% 0;
+  rotate: -20deg;
+}
+
+.g-flake-leaf:nth-child(odd) { background: #c9684a; }
+
+.g-flake-snow {
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.9);
+  opacity: 0.95;
+}
+
+@keyframes flake-fall {
+  from { top: -6%; }
+  to   { top: 106%; }
+}
+
+@keyframes flake-sway {
+  from { translate: -18px 0; }
+  to   { translate: 18px 0; }
+}
+
+/* Soil beds along the bottom */
 .g-bed {
   position: absolute;
   transform: translateX(-50%);
-  cursor: pointer;
-  touch-action: none;
-}
-
-.g-soil {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.g-soil svg { width: 100%; height: 100%; display: block; }
-
-/* Seeds show how many flowers the bed wants */
-.g-seed {
-  position: absolute;
-  width: 20px;
-  height: 26px;
-  border-radius: 50% 50% 45% 45%;
-  background: #8c7655;
-  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.12);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  animation: seed-nod 1.8s ease-in-out infinite;
-  transition: opacity 0.35s var(--ease-gentle);
-}
-
-.g-seed.is-sprouted { opacity: 0; }
-
-@keyframes seed-nod {
-  0%, 100% { translate: 0 0; rotate: -8deg; }
-  50%      { translate: 0 -5px; rotate: 8deg; }
-}
-
-/* Stepping stones along the path between beds */
-.g-stone {
-  position: absolute;
-  width: 34px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(195, 180, 148, 0.55);
-  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-/* Flowers: four nested layers, each owning one transform —
-   placement/fan, growth, breeze, and touch (lean / boing). */
-.g-flower {
+.g-bed svg { width: 100%; height: 100%; display: block; }
+
+.g-wet { opacity: 0; transition: opacity 0.3s linear; }
+
+/* The plant: outer places it, inner carries the growth scale,
+   the SVG carries bounces and the ripe sway. */
+.g-plant {
   position: absolute;
-  transform-origin: 50% 100%;
+  transform: translate(-50%, -100%);
   touch-action: none;
 }
 
-.g-grow, .g-sway, .g-lean {
+.g-plant-inner {
   position: absolute;
   inset: 0;
   transform-origin: 50% 100%;
+  transition: transform 0.18s linear;
 }
 
-.g-lean svg { width: 100%; height: 100%; display: block; }
-
-.g-grow {
-  transform: scale(0);
-  transition: transform 0.9s cubic-bezier(0.34, 1.45, 0.5, 1);
+.g-plant svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-origin: 50% 100%;
 }
 
-.g-flower.is-grown .g-grow { transform: scale(1); }
+.g-plant.is-boing svg { animation: plant-boing 0.6s var(--ease-spring); }
 
-.g-sway { animation: flower-sway 5.5s ease-in-out infinite alternate; }
+.g-plant.is-ripe svg { animation: plant-sway 5s ease-in-out infinite alternate; }
 
-@keyframes flower-sway {
-  from { transform: rotate(-2.4deg); }
-  to   { transform: rotate(2.4deg); }
+.g-plant.is-ripe.is-boing svg {
+  animation: plant-boing 0.6s var(--ease-spring), plant-sway 5s ease-in-out infinite alternate;
 }
 
-.g-lean { transition: transform 0.55s var(--ease-spring); }
-
-.g-lean.is-brushed {
-  transform: rotate(var(--lean, 14deg));
-  transition-duration: 0.12s;
-}
-
-.g-lean.is-boing { animation: flower-boing 0.6s var(--ease-spring); }
-
-@keyframes flower-boing {
+@keyframes plant-boing {
   0%   { transform: scale(1, 1); }
-  30%  { transform: scale(1.08, 0.88); }
-  60%  { transform: scale(0.95, 1.07); }
+  30%  { transform: scale(1.1, 0.86); }
+  60%  { transform: scale(0.94, 1.08); }
   100% { transform: scale(1, 1); }
 }
 
-/* The numeral sign a bed earns once its flowers are counted */
-.g-marker {
+@keyframes plant-sway {
+  from { rotate: -2.2deg; }
+  to   { rotate: 2.2deg; }
+}
+
+/* Every leaf, stem and fruit unfurls from nothing at its own water mark */
+.p-part {
+  transform-box: view-box;
+  transform: scale(0);
+  transition: transform 0.7s cubic-bezier(0.34, 1.5, 0.5, 1);
+}
+
+.p-part.is-on { transform: scale(1); }
+
+.p-ripe { opacity: 0; transition: opacity 0.3s linear; }
+
+/* The droplet gauge: how much water this bed has had */
+.g-gauge {
   position: absolute;
+  width: 30px;
+  height: 39px;
   transform: translate(-50%, -100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: none;
-  z-index: 2500;
-  animation: marker-pop 0.6s var(--ease-spring) both;
+  filter: drop-shadow(0 2px 3px rgba(91, 84, 76, 0.2));
 }
 
-.g-marker-sign {
-  min-width: 1.7em;
-  height: 1.7em;
+.g-gauge svg { width: 100%; height: 100%; display: block; }
+
+.g-gauge-fill { transition: y 0.15s linear; }
+
+.g-gauge.is-full { animation: gauge-full 0.7s var(--ease-spring); }
+
+@keyframes gauge-full {
+  0%   { transform: translate(-50%, -100%) scale(1); }
+  40%  { transform: translate(-50%, -100%) scale(1.35); }
+  100% { transform: translate(-50%, -100%) scale(1); }
+}
+
+/* The watering can: positioned by script at its spout tip; it never
+   catches touches itself, so the finger stays in charge. */
+.g-can {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 40;
+  will-change: transform;
+}
+
+.g-can-float, .g-can-body { width: 100%; height: 100%; }
+
+.g-can svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.g-can.is-idle .g-can-float { animation: can-bob 3.2s ease-in-out infinite alternate; }
+
+@keyframes can-bob {
+  from { translate: 0 -6px; rotate: -3deg; }
+  to   { translate: 0 6px; rotate: 3deg; }
+}
+
+.g-can.is-glow .g-can-float { animation: can-bob 3.2s ease-in-out infinite alternate, can-glow 1.6s ease-in-out infinite alternate; }
+
+@keyframes can-glow {
+  from { filter: drop-shadow(0 0 6px rgba(255, 214, 120, 0.55)) drop-shadow(0 4px 8px rgba(91, 84, 76, 0.2)); }
+  to   { filter: drop-shadow(0 0 20px rgba(255, 200, 90, 0.95)) drop-shadow(0 0 36px rgba(255, 190, 70, 0.5)); }
+}
+
+.g-can-body {
+  transition: transform 0.35s var(--ease-spring);
+  filter: drop-shadow(0 6px 10px rgba(91, 84, 76, 0.22));
+}
+
+.g-can.is-pouring .g-can-body { transform: rotate(-32deg); }
+
+/* Water: drops falling from the spout to the soil, and splashes */
+.g-drop {
+  position: absolute;
+  width: 9px;
+  height: 13px;
+  margin-left: -4.5px;
+  border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+  background: rgba(130, 188, 232, 0.9);
+  pointer-events: none;
+  z-index: 35;
+  animation: drop-fall linear forwards;
+}
+
+@keyframes drop-fall {
+  0%   { transform: translateY(0) scaleY(1); opacity: 0.95; }
+  85%  { opacity: 0.9; }
+  100% { transform: translateY(var(--fall)) scaleY(0.55); opacity: 0; }
+}
+
+.g-splash {
+  position: absolute;
+  width: 10px;
+  height: 5px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: var(--ink);
-  background: color-mix(in srgb, var(--sign, #f3e9d2) 45%, #fffaf0);
-  border: 2px solid rgba(140, 118, 85, 0.55);
-  box-shadow: 0 2px 6px rgba(91, 84, 76, 0.2);
+  border: 2px solid rgba(130, 188, 232, 0.8);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 34;
+  animation: splash-ring 0.4s ease-out forwards;
 }
 
-.g-marker-stick {
-  width: 5px;
-  height: 1.1em;
-  background: #b59a72;
-  border-radius: 0 0 3px 3px;
+@keyframes splash-ring {
+  from { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+  to   { transform: translate(-50%, -50%) scale(3); opacity: 0; }
 }
 
-@keyframes marker-pop {
-  0%   { opacity: 0; transform: translate(-50%, -60%) scale(0.4); }
-  60%  { opacity: 1; transform: translate(-50%, -104%) scale(1.1); }
-  100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
-}
-
-.count-label {
+/* The number a ripe crop wears */
+.g-num {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-size: clamp(2rem, 9vw, 3rem);
-  font-weight: 700;
-  color: var(--ink);
-  background: rgba(250, 246, 239, 0.92);
   width: 1.9em;
   height: 1.9em;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(250, 246, 239, 0.94);
   box-shadow: var(--card-shadow);
   pointer-events: none;
-  animation: count-spring 1.9s var(--ease-gentle) forwards;
-  z-index: 4000;
+  z-index: 30;
+  animation: num-pop 0.7s var(--ease-spring) both;
 }
 
-@keyframes count-spring {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-  14%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-  24%  { transform: translate(-50%, -50%) scale(1); }
-  80%  { opacity: 1; transform: translate(-50%, -46%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -58%) scale(1); }
+@keyframes num-pop {
+  0%   { opacity: 0; transform: translate(-50%, -20%) scale(0.3); }
+  60%  { opacity: 1; transform: translate(-50%, -56%) scale(1.15); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-
-/* Visiting butterflies: drift between flowers, rest with slow
-   wingbeats, flutter off when tapped. */
-.g-butterfly {
+.g-spark {
   position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3500;
-  padding: 10px;
-  margin: -10px;
-  will-change: transform;
-  touch-action: none;
-  cursor: pointer;
+  width: 10px;
+  height: 10px;
+  background: #ffd98a;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  pointer-events: none;
+  z-index: 32;
+  animation: spark-pop 1.1s var(--ease-gentle) forwards;
 }
 
-.g-wings {
-  display: inline-block;
-  animation: flutter 0.22s ease-in-out infinite alternate;
-}
-
-.g-butterfly.is-landed .g-wings {
-  animation-duration: 1.3s;
-}
-
-@keyframes flutter {
-  from { transform: scaleX(1) rotate(-4deg); }
-  to   { transform: scaleX(0.72) rotate(4deg); }
+@keyframes spark-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(0); }
+  25%  { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(40deg); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(0.6) rotate(120deg); }
 }
 
 /* Gentle celebration stars, shared by games */

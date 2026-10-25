@@ -44,7 +44,7 @@ every single thing that happens on screen — not from spectacle.
    child's own actions.
 10. **Play flows by itself, always.** When an activity reaches a natural
     resting point (eight bubbles popped, two puzzles done, two sorts
-    done, the garden path walked to its fifth bed), the next activity gently crossfades
+    done, all five garden beds watered to ripeness), the next activity gently crossfades
     in — bubbles → shapes → colors → garden → bubbles. And if a child
     just pokes around without finishing anything, a 70-second visit
     timer rotates play anyway, so there is *always* something new to do
@@ -139,36 +139,42 @@ the same bright golden flash.
 - *Colors used:* muted red, blue, yellow, green — a rotating random pair
   each round.
 
-### 4. Garden — counting 1–5 along a garden path
-A walk along a garden path, **one bed at a time** — never more than five
-flowers on screen. Each bed shows nodding seeds for how many flowers it
-wants: one seed in the first (small) bed, two in the next, up to five in
-the last (beds grow wider with their number). Each tap on the bed grows one
-flower while Toddl counts it aloud — "one… two… three…" — with a rising
-note and a single count bubble in a fixed spot at the top of the sky. A
-butterfly friend flutters over to land on each flower as it's counted,
-drawing the eye to "this one". When every seed has bloomed, the bed's
-numeral sign pops up beside it, and the child can play for a moment:
+### 4. Garden — a seasonal vegetable patch and a watering can
+Five beds across the bottom, each with a seedling and a little droplet
+gauge beside it. A watering can floats at the left, glowing softly: the
+invitation. Touch anywhere and the can flies to the finger and tips to
+pour; drag it over a bed and the water lands on the **soil** (the gauge
+only shows how much the bed has drunk — the stream never aims at it).
+Everything grows *while* the water is landing: the sprout stretches,
+leaves unfurl one by one with a bounce and a bell note, fruit buds
+appear, swell, and turn from green to their real color. When a bed's
+droplet is full the crop ripens with a bounce and a sparkle, Toddl says
+its number — the first bed finished is "one", the next "two" — and then
+its name ("tomato"), and the number stays above it. Water on the path
+between beds simply soaks in.
 
-- **Flowers sing.** Tap one and it bobs and rings a music-box note.
-- **Wind through the bed.** Brush a finger across the flowers and they lean
-  away and spring back, chiming as you pass.
-- **Count again.** Tap the full bed and Toddl recounts, each flower bobbing
-  as it's counted.
-- **Shoo the butterfly.** Tap it and it loops off to another flower.
+**Every bed is a different thirst.** Each needs a different amount of
+water (about 1.5–4 seconds of pouring), and the thirstier the bed, the
+bigger its crop grows — patience makes bigger things.
 
-Then the view glides along the stepping-stone path to the next bed (the
-butterfly flies along), lingering longer while the child plays but always
-moving on. After the fifth bed, the flowers ripple once in a rising
-glissando and the next activity drifts in after a short stretch of play.
+**The crops follow the seasons**, and so does the sky: spring (strawberry,
+pea, radish, lettuce, carrot) under drifting blossom petals; summer
+(tomato, corn, watermelon, blueberry, cucumber) under a big warm sun;
+autumn (pumpkin, apple, grapes, beet, broccoli) with leaves tumbling
+down; winter (cabbage, orange, turnip, leek, kale) with snow falling on
+white hills. The first visit shows the real season; each visit after
+moves one season along, and Toddl names the season as it opens.
 
-- *Teaches:* counting 1–5 with true quantity — one tap = one flower = one
-  number (one-to-one correspondence); the seeds make the goal visible with
-  no instructions, and the numeral appears only once the quantity is built.
-- *Calm by design:* one quantity at a time (Montessori isolation of
-  difficulty), one butterfly, one count bubble, one sign. A rapid
-  double-tap still grows only one flower, and extra taps on a full bed just
-  recount it — nothing to get wrong.
+Once all five are ripe the garden bounces in a chime, the child can tap
+any crop to hear its name, and the next activity drifts in after a
+short stretch of play or a quiet pause.
+
+- *Teaches:* counting 1–5 by completion (the numbers arrive in order no
+  matter which bed is watered first), real cause-and-effect (growth
+  happens only while water is actually landing), patience, and the
+  vocabulary of fruits, vegetables, and seasons.
+- *Calm by design:* one can, one stream, one thing growing at a time
+  under the finger; the drifting season particles are few and slow.
 
 ### 5. Piano — letters & pitch
 Eight big white keys, C to C, each wearing its letter on a Boomwhacker-
@@ -242,8 +248,8 @@ spoken words) and a note encouraging co-play. Settings persist in
 - **Zero dependencies, no build step.** Plain HTML/CSS/JS with classic
   scripts. Serve the folder (or open over any static host) and it runs.
 - **All art is inline SVG / CSS** and all sound effects are
-  WebAudio-synthesized. The only binary assets are the ~29 spoken-word
-  clips in `www/audio/words/` (≈0.8 MB total), generated offline with
+  WebAudio-synthesized. The only binary assets are the ~51 spoken-word
+  clips in `www/audio/words/` (≈0.3 MB total), generated offline with
   Piper neural TTS (`en-us-lessac-medium`, slowed ~15%, silence-trimmed,
   loudness-normalized to −20 LUFS). Regenerate or re-record them freely —
   the app just plays `<slug>.mp3` for each word, so a parent's own
