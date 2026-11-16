@@ -2,7 +2,9 @@ name: Build mobile apps
 
 on:
   push:
-    branches: ['**']
+    # main only: the working branch always carries the same commit, and
+    # building twice just queued two macOS jobs for one change
+    branches: ['main']
   workflow_dispatch:
 
 jobs:
