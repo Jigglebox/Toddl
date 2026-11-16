@@ -235,9 +235,19 @@ uncanny, so the piano keeps its human silence and lets the tones sing.)
 ## For grown-ups
 
 A parent gate ("grown-ups — hold", press-and-hold 2 seconds — a gesture
-toddlers don't sustain) opens a small panel with two toggles (gentle sounds,
-spoken words) and a note encouraging co-play. Settings persist in
-`localStorage`.
+toddlers don't sustain) opens a small panel with sound/voice/lullaby
+toggles, the per-game Shuffle Play toggles, an **Update** row, and a note
+encouraging co-play. Settings persist in `localStorage`.
+
+**Updates without reinstalling.** Every build is stamped with its git sha
+(`resources/stamp-version.sh`, run by CI). The panel compares the running
+stamp with the server's `version.json` and says either "You have the
+latest version" or "Update available", and the Update button throws away
+the offline copy (caches + service worker) and reloads straight from the
+network. The native Android/iOS shells load the live site
+(`server.url` in `capacitor.config.json`), so the same button updates
+them too — the APK only needs re-downloading if the native shell itself
+changes.
 
 ## Toddler-proofing
 
@@ -272,7 +282,10 @@ spoken words) and a note encouraging co-play. Settings persist in
   the app just plays `<slug>.mp3` for each word, so a parent's own
   recorded voice works too.
 - **Offline-first PWA:** a cache-first service worker precaches everything on
-  first visit — important for the "toddler on a plane" use case.
+  first visit — important for the "toddler on a plane" use case. The cache
+  is named after the build stamp and precached straight from the network,
+  so each deploy is picked up cleanly; the grown-ups' Update button forces
+  it immediately.
 - Each game is a self-contained module exposing `start(stageEl)` / `stop()`;
   the shell (`js/main.js`) owns navigation, the parent gate, audio unlock,
   and re-layout on rotation.

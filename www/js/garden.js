@@ -43,14 +43,14 @@
     'watering-can': { w: 703, h: 618 },
     strawberry: { w: 541, h: 650, scale: 1.08 },
     pea:        { w: 332, h: 855, scale: 1.1 },
-    lettuce:    { w: 754, h: 615, scale: 0.84 },
+    lettuce:    { w: 754, h: 615, scale: 0.74 },   // wide: pack says 0.84
     carrot:     { w: 414, h: 813, scale: 1.1 },
     tomato:     { w: 533, h: 592, scale: 1.0 },
     blueberry:  { w: 574, h: 638, scale: 0.98 },
     pumpkin:    { w: 542, h: 632, scale: 1.0 },
     apple:      { w: 590, h: 692, scale: 1.02 },
     broccoli:   { w: 716, h: 720, scale: 0.8 },
-    cabbage:    { w: 836, h: 703, scale: 0.8 },
+    cabbage:    { w: 836, h: 703, scale: 0.66 },   // wide: pack says 0.8
     orange:     { w: 558, h: 643, scale: 0.98 }
   };
   var CROPS = {
@@ -222,8 +222,11 @@
     // full-grown height: the pack's base (0.30 x stage) x its per-crop
     // scale x this bed's thirst
     var sp = SPRITES[crop.name];
-    var fullH = Math.min(geo.H * CROP_BASE_H * (sp.scale || 1) * size, geo.soilTop * 0.92);
+    // ...but never taller than the bed is wide-and-a-bit, nor wider than
+    // the bed: on big screens the beds stop growing, so crops must too
+    var fullH = Math.min(geo.H * CROP_BASE_H * (sp.scale || 1) * size, geo.bw * 1.25, geo.soilTop * 0.92);
     var fullW = fullH * sp.w / sp.h;
+    if (fullW > geo.bw * 0.96) { fullW = geo.bw * 0.96; fullH = fullW * sp.h / sp.w; }
     var plant = document.createElement('div');
     plant.className = 'g-plant';
     plant.style.left = x + 'px';

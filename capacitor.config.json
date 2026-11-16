@@ -10,5 +10,8 @@
   "android": {
     "backgroundColor": "#faf6ef",
     "allowMixedContent": false
+  },
+  "server": {
+    "url": "https://jigglebox.github.io/Toddl/"
   }
 }

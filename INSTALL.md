@@ -10,6 +10,11 @@ Android will ask once to allow "install unknown apps" for the browser —
 allow it, then tap the downloaded file again. This link always serves the
 newest build (CI republishes it on every push).
 
+Once installed, you shouldn't need this link again: the app loads the
+live site and keeps an offline copy, and **grown-ups panel → Update**
+pulls the newest version whenever one is pushed. (The first launch needs
+internet; after that it works offline.)
+
 ## iPhone — install as a web app
 
 Apple doesn't allow installing native apps from a link without the App
@@ -21,7 +26,8 @@ Store or TestFlight, but Toddl is a full offline web app, so:
 
 It runs fullscreen (no browser chrome), locks to landscape, and works
 completely offline after the first launch — the same code as the native
-app. For a toddler-locked session, turn on Guided Access
+app. New versions arrive on their own within a launch or two, or
+immediately via **grown-ups panel → Update**. For a toddler-locked session, turn on Guided Access
 (Settings → Accessibility) and triple-click the side button in the app.
 
 ## Xcode (native iOS build)

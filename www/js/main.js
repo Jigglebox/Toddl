@@ -248,6 +248,7 @@
       syncToggle('toggle-game-' + g, rotation[g]);
     });
     showScreen('screen-parents');
+    checkForUpdate();
   }
 
   function syncToggle(id, value) {
@@ -461,11 +462,74 @@
     }, 300);
   });
 
+  /* ---------- Updates ----------
+     Every build is stamped with its git sha (resources/stamp-version.sh,
+     run by CI). The grown-ups panel compares the running stamp with the
+     server's version.json; Update throws away the offline copy and
+     reloads straight from the network — the same for the web app and
+     the native shells, which load the live site. */
+
+  var VERSION = (function () {
+    var m = document.querySelector('meta[name="toddl-version"]');
+    var v = m ? m.getAttribute('content') : '';
+    return (!v || v.indexOf('__') === 0) ? 'dev' : v;
+  })();
+  var updateStatus = document.getElementById('update-status');
+  var btnUpdate = document.getElementById('btn-update');
+
+  function checkForUpdate() {
+    if (!updateStatus) return;
+    updateStatus.textContent = 'Checking for updates…';
+    btnUpdate.classList.remove('is-ready');
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var latest = j && j.version;
+        if (latest && latest !== VERSION) {
+          updateStatus.textContent = 'Update available: ' + latest + ' (you have ' + VERSION + ')';
+          btnUpdate.classList.add('is-ready');
+        } else {
+          updateStatus.textContent = 'You have the latest version (' + VERSION + ')';
+        }
+      })
+      .catch(function () {
+        updateStatus.textContent = 'Offline — version ' + VERSION;
+      });
+  }
+
+  function applyUpdate() {
+    if (updateStatus) updateStatus.textContent = 'Updating…';
+    var steps = [];
+    if (window.caches) {
+      steps.push(caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+      }));
+    }
+    if (navigator.serviceWorker) {
+      steps.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+        return Promise.all(regs.map(function (r) { return r.unregister(); }));
+      }));
+    }
+    Promise.all(steps).catch(function () { /* best effort */ }).then(function () {
+      // a fresh address so the page itself is not served from any cache
+      window.location.replace(window.location.pathname + '?u=' + Date.now());
+    });
+  }
+
+  if (btnUpdate) onTap(btnUpdate, applyUpdate);
+
+  // Back from an update: tidy the address again.
+  if (/[?&]u=/.test(window.location.search) && window.history.replaceState) {
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   /* ---------- Offline support ---------- */
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {
+      // updateViaCache 'none': always look for a newer sw.js on the
+      // network, so a new build is noticed within one launch
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {
         // Offline caching is a nice-to-have; the app works without it.
       });
     });

@@ -30,6 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Stamp the build version
+        run: bash resources/stamp-version.sh
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true

@@ -7,11 +7,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#faf6ef">
   <meta name="description" content="Toddl — calm Montessori-style games for toddlers">
+  <meta name="toddl-version" content="__TODDL_VERSION__">
   <title>Toddl</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon.svg">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=__TODDL_VERSION__">
 </head>
 <body>
 
@@ -213,6 +214,17 @@
         </button>
       </div>
 
+      <h3 class="parents-subhead">Updates</h3>
+      <div class="setting-row">
+        <span class="setting-name" id="update-status">Checking for updates…</span>
+        <button id="btn-update" class="parents-update" aria-label="Update Toddl">Update</button>
+      </div>
+      <p class="parents-note parents-note-small">
+        Toddl keeps a copy on the device so it works offline. Tap Update
+        to fetch the newest version straight from the web — no reinstall
+        needed.
+      </p>
+
       <p class="parents-tip">
         Tip: sit with your child and name what they see. The games are
         designed to be played together.
@@ -227,13 +239,13 @@
     </div>
   </section>
 
-  <script src="js/audio.js"></script>
-  <script src="js/scenery.js"></script>
-  <script src="js/bubbles.js"></script>
-  <script src="js/shapes.js"></script>
-  <script src="js/colors.js"></script>
-  <script src="js/garden.js"></script>
-  <script src="js/piano.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/audio.js?v=__TODDL_VERSION__"></script>
+  <script src="js/scenery.js?v=__TODDL_VERSION__"></script>
+  <script src="js/bubbles.js?v=__TODDL_VERSION__"></script>
+  <script src="js/shapes.js?v=__TODDL_VERSION__"></script>
+  <script src="js/colors.js?v=__TODDL_VERSION__"></script>
+  <script src="js/garden.js?v=__TODDL_VERSION__"></script>
+  <script src="js/piano.js?v=__TODDL_VERSION__"></script>
+  <script src="js/main.js?v=__TODDL_VERSION__"></script>
 </body>
 </html>
