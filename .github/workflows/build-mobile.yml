@@ -48,11 +48,11 @@ jobs:
       # A phone-friendly, stable download link:
       #   https://github.com/Jigglebox/Toddl/releases/latest/download/toddl.apk
       - name: Stage phone-installable APK
-        if: github.ref == 'refs/heads/claude/toddl-mobile-game-design-ql5au9'
+        if: github.ref == 'refs/heads/main'
         run: cp android/app/build/outputs/apk/debug/app-debug.apk toddl.apk
 
       - name: Publish APK to the rolling "latest" release
-        if: github.ref == 'refs/heads/claude/toddl-mobile-game-design-ql5au9'
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest

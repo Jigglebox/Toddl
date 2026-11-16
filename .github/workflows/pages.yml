@@ -5,7 +5,7 @@ name: Deploy web app to GitHub Pages
 
 on:
   push:
-    branches: ['claude/toddl-mobile-game-design-ql5au9']
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
