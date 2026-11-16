@@ -5,7 +5,9 @@ name: Deploy web app to GitHub Pages
 
 on:
   push:
-    branches: ['main']
+    # main is the home of the site; the older branch stays listed until
+    # the github-pages environment allows deployments from main
+    branches: ['main', 'claude/toddl-mobile-game-design-ql5au9']
   workflow_dispatch:
 
 permissions:
