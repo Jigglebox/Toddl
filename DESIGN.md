@@ -42,17 +42,20 @@ every single thing that happens on screen — not from spectacle.
    hills — and every touchable thing idles with a slow bob or sway. Alive
    enough to be mesmerizing, never fast enough to distract from the
    child's own actions.
-10. **Play flows by itself, always.** When an activity reaches a natural
-    resting point (eight bubbles popped, two puzzles done, two sorts
-    done, all five garden beds watered to ripeness), the next activity gently crossfades
-    in — bubbles → shapes → colors → garden → bubbles. And if a child
-    just pokes around without finishing anything, a 70-second visit
-    timer rotates play anyway, so there is *always* something new to do
-    with no menu and no parent needed. Inter-round pauses are short
-    (~1.6s) so the screen is never idle. The home screen still allows
-    jumping straight to any activity, and the grown-ups panel has
-    per-game rotation toggles so parents can drop any game the child
-    isn't enjoying (with a safe fallback if everything is switched off).
+10. **Two ways to play, no menus mid-play.** A big **Shuffle Play**
+    pill on the home screen wanders from game to game by itself: when
+    an activity reaches a natural resting point (eight bubbles popped,
+    two puzzles done, two sorts done, all five garden beds watered, a
+    song played) the next one gently crossfades in — chosen at random
+    from the games the grown-ups left switched on, never the one just
+    played — and a 70-second visit timer rotates play anyway if a child
+    just pokes around. Picking a **single game** from the home screen
+    stays on that game: a finished round lingers for 15 seconds to be
+    enjoyed, then the stage dips out and comes back with a fresh round,
+    and a long visit (two minutes) resets it too. The grown-ups panel's
+    per-game toggles govern Shuffle Play, so any game the child isn't
+    enjoying can be dropped from it (with a safe fallback if everything
+    is switched off).
 11. **Landscape, on a lap.** Toddlers don't hold phones; they set them
     down. The native apps lock to landscape, the PWA manifest requests
     it, and in a portrait browser a calm "turn me sideways" screen shows
@@ -145,10 +148,13 @@ gauge beside it. A watering can floats at the left, glowing softly: the
 invitation. Touch anywhere and the can flies to the finger and tips to
 pour; drag it over a bed and the water lands on the **soil** (the gauge
 only shows how much the bed has drunk — the stream never aims at it).
-Everything grows *while* the water is landing: the sprout stretches,
-leaves unfurl one by one with a bounce and a bell note, fruit buds
-appear, swell, and turn from green to their real color. When a bed's
-droplet is full the crop ripens with a bounce and a sparkle, Toddl says
+The crop grows *while* the water is landing — one simple picture of the
+fruit or vegetable, drawn at full color with a little leaf sprig, that
+scales smoothly from small to big as the bed drinks, wiggling happily the
+whole time water is hitting it (soft bell notes mark the way). The pour
+itself sounds like a trickle: a thin hiss under a patter of tiny droplet
+ticks and rising plinks. When a bed's droplet is full the crop ripens
+with a bounce and a sparkle, Toddl says
 its number — the first bed finished is "one", the next "two" — and then
 its name ("tomato"), and the number stays above it. Water on the path
 between beds simply soaks in.
@@ -174,7 +180,8 @@ short stretch of play or a quiet pause.
   happens only while water is actually landing), patience, and the
   vocabulary of fruits, vegetables, and seasons.
 - *Calm by design:* one can, one stream, one thing growing at a time
-  under the finger; the drifting season particles are few and slow.
+  under the finger; one picture per crop (no stems, vines or stages to
+  decode); the drifting season particles are few and slow.
 
 ### 5. Piano — letters & pitch
 Eight big white keys, C to C, each wearing its letter on a Boomwhacker-

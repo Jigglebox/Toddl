@@ -93,7 +93,7 @@
   var NUMBER_WORDS = ['one', 'two', 'three', 'four', 'five'];
   var BEDS = 5;
   var NEED_MIN = 1.6, NEED_MAX = 3.8;    // seconds of watering per bed
-  var STAGES = [0.08, 0.3, 0.5, 0.62, 0.78, 0.9];   // growth pops
+  var MARKS = [0.25, 0.5, 0.75];           // soft notes as it grows
   var DROP_EVERY_MS = 32;
   var END_IDLE_MS = 12000;
   var END_BUDGET = 10;
@@ -198,66 +198,61 @@
   }
 
   /* ---------- drawing: the crops ----------
-     100 x 100 local units, ground at y = 100, centered at x = 50.
-     Parts carry data-at (the water fraction that reveals them) so
-     the plant can unfurl piece by piece as it is watered.        */
+     One picture per crop, drawn at full color in a 100 x 100 box
+     with the ground at y = 100. It simply grows from small to big
+     as the bed is watered, with a little leaf sprig on top.        */
 
-  function leafPath(x, y, len, angle, color, at) {
-    var g = svgEl('g', { 'class': 'p-part p-leaf', 'data-at': at });
-    g.style.transformOrigin = x + 'px ' + y + 'px';
-    var p = svgEl('path', {
-      d: 'M' + x + ' ' + y + ' q' + (len * 0.55) + ' ' + (-len * 0.22) + ' ' + len + ' ' + (-len * 0.28) +
-         ' q' + (-len * 0.4) + ' ' + (len * 0.32) + ' ' + (-len) + ' ' + (len * 0.28) + ' Z',
-      fill: color, transform: 'rotate(' + angle + ' ' + x + ' ' + y + ')'
-    });
-    g.appendChild(p);
-    return g;
-  }
-
-  function fruitShapes(crop, cx, cy, r) {
+  function cropShapes(crop, cx, cy, r) {
     var out = [];
-    function two(makeShape) {
-      var greenEl = makeShape(crop.green);
-      var ripeEl = makeShape(crop.ripe);
-      ripeEl.setAttribute('class', 'p-ripe');
-      out.push(greenEl, ripeEl);
-    }
+    function one(makeShape) { out.push(makeShape(crop.ripe)); }
     switch (crop.fruit) {
       case 'berry':
-        two(function (c) {
+        one(function (c) {
           return svgEl('path', {
             d: 'M' + cx + ' ' + (cy - r) + ' C' + (cx + r * 1.3) + ' ' + (cy - r) + ' ' + (cx + r * 1.1) + ' ' + (cy + r * 0.9) +
                ' ' + cx + ' ' + (cy + r * 1.25) + ' C' + (cx - r * 1.1) + ' ' + (cy + r * 0.9) + ' ' + (cx - r * 1.3) + ' ' + (cy - r) +
                ' ' + cx + ' ' + (cy - r) + ' Z', fill: c
           });
         });
-        out.push(svgEl('path', { d: 'M' + (cx - r * 0.7) + ' ' + (cy - r * 0.8) + ' L' + cx + ' ' + (cy - r * 1.3) + ' L' + (cx + r * 0.7) + ' ' + (cy - r * 0.8) + ' Z', fill: crop.leaf }));
+        for (var si = 0; si < 7; si++) {
+          var a = si * 0.9 + 0.3, rr = r * (0.35 + 0.35 * (si % 3) / 2);
+          out.push(svgEl('circle', { cx: cx + Math.cos(a) * rr * 1.3, cy: cy + Math.sin(a) * rr * 1.2 + r * 0.1, r: r * 0.07, fill: '#fff3c8' }));
+        }
+        out.push(svgEl('path', { d: 'M' + (cx - r * 0.75) + ' ' + (cy - r * 0.85) + ' L' + cx + ' ' + (cy - r * 1.35) + ' L' + (cx + r * 0.75) + ' ' + (cy - r * 0.85) + ' Z', fill: crop.leaf }));
         break;
       case 'pod':
-        two(function (c) {
-          return svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.55, ry: r * 1.5, fill: c, transform: 'rotate(18 ' + cx + ' ' + cy + ')' });
+        one(function (c) {
+          return svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.5, ry: r * 1.5, fill: c, transform: 'rotate(16 ' + cx + ' ' + cy + ')' });
         });
+        for (var pi = -1; pi <= 1; pi++) {
+          out.push(svgEl('circle', { cx: cx + pi * r * 0.14, cy: cy + pi * r * 0.6, r: r * 0.26, fill: 'rgba(255,255,255,0.22)' }));
+        }
         break;
       case 'cluster':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           var pts = [[0, -0.9], [-0.8, -0.2], [0.8, -0.2], [0, 0.5], [-0.5, 1.1], [0.5, 1.1]];
           for (var i = 0; i < pts.length; i++) {
             g.appendChild(svgEl('circle', { cx: cx + pts[i][0] * r * 0.8, cy: cy + pts[i][1] * r * 0.8, r: r * 0.55, fill: c }));
+            g.appendChild(svgEl('circle', { cx: cx + pts[i][0] * r * 0.8 - r * 0.15, cy: cy + pts[i][1] * r * 0.8 - r * 0.15, r: r * 0.16, fill: 'rgba(255,255,255,0.3)' }));
           }
           return g;
         });
         break;
       case 'taper':
-        two(function (c) {
+        one(function (c) {
           return svgEl('path', {
             d: 'M' + (cx - r) + ' ' + (cy - r * 0.6) + ' Q' + cx + ' ' + (cy + r * 2.6) + ' ' + (cx + r) + ' ' + (cy - r * 0.6) +
                ' Q' + cx + ' ' + (cy - r * 1.1) + ' ' + (cx - r) + ' ' + (cy - r * 0.6) + ' Z', fill: c
           });
         });
+        for (var ti = 0; ti < 3; ti++) {
+          var ty = cy + r * (0.1 + ti * 0.6), tw = r * (0.8 - ti * 0.2);
+          out.push(svgEl('line', { x1: cx - tw, y1: ty, x2: cx + tw, y2: ty, stroke: 'rgba(120,60,20,0.25)', 'stroke-width': r * 0.08, 'stroke-linecap': 'round' }));
+        }
         break;
       case 'melon':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 1.3, ry: r, fill: c }));
           for (var i = -1; i <= 1; i++) {
@@ -270,7 +265,7 @@
         });
         break;
       case 'pumpkin':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           g.appendChild(svgEl('ellipse', { cx: cx - r * 0.75, cy: cy, rx: r * 0.7, ry: r * 0.95, fill: c }));
           g.appendChild(svgEl('ellipse', { cx: cx + r * 0.75, cy: cy, rx: r * 0.7, ry: r * 0.95, fill: c }));
@@ -281,21 +276,21 @@
         out.push(svgEl('rect', { x: cx - r * 0.12, y: cy - r * 1.25, width: r * 0.24, height: r * 0.4, rx: r * 0.08, fill: '#8d9a62' }));
         break;
       case 'leafy':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           for (var i = 0; i < 6; i++) {
-            var a = i * 60;
             g.appendChild(svgEl('ellipse', {
               cx: cx, cy: cy - r * 0.45, rx: r * 0.5, ry: r * 0.95, fill: c,
-              transform: 'rotate(' + a + ' ' + cx + ' ' + cy + ')', opacity: 0.9
+              transform: 'rotate(' + (i * 60) + ' ' + cx + ' ' + cy + ')', opacity: 0.9
             }));
           }
           g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r * 0.6, fill: c }));
+          g.appendChild(svgEl('circle', { cx: cx - r * 0.15, cy: cy - r * 0.15, r: r * 0.22, fill: 'rgba(255,255,255,0.3)' }));
           return g;
         });
         break;
       case 'ear':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.5, ry: r * 1.4, fill: c }));
           for (var i = -1; i <= 1; i++) {
@@ -304,9 +299,11 @@
           return g;
         });
         out.push(svgEl('path', { d: 'M' + (cx - r * 0.5) + ' ' + (cy + r * 0.6) + ' q' + (-r * 0.4) + ' ' + (-r * 1.6) + ' ' + (r * 0.6) + ' ' + (-r * 2.4) + ' q' + (-r * 0.2) + ' ' + (r * 1.2) + ' ' + (-r * 0.1) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf, opacity: 0.85 }));
+        out.push(svgEl('path', { d: 'M' + (cx + r * 0.5) + ' ' + (cy + r * 0.6) + ' q' + (r * 0.4) + ' ' + (-r * 1.6) + ' ' + (-r * 0.6) + ' ' + (-r * 2.4) + ' q' + (r * 0.2) + ' ' + (r * 1.2) + ' ' + (r * 0.1) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf, opacity: 0.85 }));
         break;
       case 'floret':
-        two(function (c) {
+        out.push(svgEl('rect', { x: cx - r * 0.3, y: cy + r * 0.4, width: r * 0.6, height: r * 1.4, rx: r * 0.2, fill: '#cfe0b4' }));
+        one(function (c) {
           var g = svgEl('g', {});
           var pts = [[0, 0], [-0.9, 0.2], [0.9, 0.2], [-0.5, -0.7], [0.5, -0.7], [0, 0.8]];
           for (var i = 0; i < pts.length; i++) {
@@ -316,15 +313,17 @@
         });
         break;
       case 'leek':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           g.appendChild(svgEl('rect', { x: cx - r * 0.5, y: cy - r * 1.6, width: r, height: r * 3.2, rx: r * 0.3, fill: c }));
-          g.appendChild(svgEl('rect', { x: cx - r * 0.5, y: cy - r * 1.6, width: r, height: r * 1.2, rx: r * 0.3, fill: crop.leaf, opacity: 0.7 }));
+          g.appendChild(svgEl('rect', { x: cx - r * 0.5, y: cy - r * 1.6, width: r, height: r * 1.3, rx: r * 0.3, fill: crop.leaf, opacity: 0.75 }));
           return g;
         });
+        out.push(svgEl('path', { d: 'M' + cx + ' ' + (cy - r * 1.2) + ' q' + (-r * 1.4) + ' ' + (-r * 0.8) + ' ' + (-r * 1.2) + ' ' + (-r * 2.4) + ' q' + (r * 0.9) + ' ' + (r * 0.9) + ' ' + (r * 1.2) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf }));
+        out.push(svgEl('path', { d: 'M' + cx + ' ' + (cy - r * 1.2) + ' q' + (r * 1.4) + ' ' + (-r * 0.8) + ' ' + (r * 1.2) + ' ' + (-r * 2.4) + ' q' + (-r * 0.9) + ' ' + (r * 0.9) + ' ' + (-r * 1.2) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf }));
         break;
       case 'ruffle':
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           for (var i = 0; i < 5; i++) {
             g.appendChild(svgEl('ellipse', {
@@ -336,7 +335,7 @@
         });
         break;
       default: // round
-        two(function (c) {
+        one(function (c) {
           var g = svgEl('g', {});
           g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r, fill: c }));
           g.appendChild(svgEl('circle', { cx: cx - r * 0.3, cy: cy - r * 0.3, r: r * 0.3, fill: 'rgba(255,255,255,0.3)' }));
@@ -346,63 +345,34 @@
     return out;
   }
 
-  function fruitGroup(crop, cx, cy, r, at) {
-    var g = svgEl('g', { 'class': 'p-part p-fruit', 'data-at': at });
-    g.style.transformOrigin = cx + 'px ' + cy + 'px';
-    var shapes = fruitShapes(crop, cx, cy, r);
-    for (var i = 0; i < shapes.length; i++) g.appendChild(shapes[i]);
-    return g;
-  }
+  // Where each picture sits in the box, and where its leaf sprig goes.
+  var ICON = {
+    berry:   { cy: 62, r: 26, sprig: null },
+    pod:     { cy: 60, r: 24, sprig: 24 },
+    round:   { cy: 62, r: 34, sprig: 28 },
+    cluster: { cy: 58, r: 26, sprig: 24 },
+    taper:   { cy: 46, r: 20, sprig: 24 },
+    melon:   { cy: 66, r: 30, sprig: 36 },
+    pumpkin: { cy: 66, r: 30, sprig: null },
+    leafy:   { cy: 66, r: 24, sprig: null },
+    ear:     { cy: 60, r: 26, sprig: null },
+    floret:  { cy: 60, r: 22, sprig: null },
+    leek:    { cy: 58, r: 16, sprig: null },
+    ruffle:  { cy: 64, r: 22, sprig: null }
+  };
 
-  function makePlantSvg(crop) {
+  function makeCropSvg(crop) {
     var svg = svgEl('svg', { viewBox: '0 0 100 100', preserveAspectRatio: 'xMidYMax meet' });
     svg.style.overflow = 'visible';
-    var stemColor = '#8aa86f';
-
-    if (crop.kind === 'bush') {
-      var stem = svgEl('path', { d: 'M50 100 C49 80 51 60 50 30', stroke: stemColor, 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round', 'class': 'p-part p-stem', 'data-at': 0 });
-      stem.style.transformOrigin = '50px 100px';
-      svg.appendChild(stem);
-      svg.appendChild(leafPath(50, 82, 26, 200, crop.leaf, STAGES[0]));
-      svg.appendChild(leafPath(50, 66, 26, -20, crop.leaf, STAGES[1]));
-      svg.appendChild(leafPath(50, 48, 24, 205, crop.leaf, STAGES[2]));
-      svg.appendChild(leafPath(50, 34, 22, -25, crop.leaf, STAGES[2]));
-      svg.appendChild(fruitGroup(crop, 36, 58, 8, STAGES[3]));
-      svg.appendChild(fruitGroup(crop, 64, 72, 8, STAGES[4]));
-      svg.appendChild(fruitGroup(crop, 54, 40, 8, STAGES[5]));
-    } else if (crop.kind === 'stalk') {
-      var st = svgEl('path', { d: 'M50 100 L50 18', stroke: stemColor, 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round', 'class': 'p-part p-stem', 'data-at': 0 });
-      st.style.transformOrigin = '50px 100px';
-      svg.appendChild(st);
-      svg.appendChild(leafPath(50, 86, 34, 195, crop.leaf, STAGES[0]));
-      svg.appendChild(leafPath(50, 70, 34, -15, crop.leaf, STAGES[1]));
-      svg.appendChild(leafPath(50, 54, 30, 200, crop.leaf, STAGES[2]));
-      svg.appendChild(leafPath(50, 40, 28, -20, crop.leaf, STAGES[3]));
-      if (crop.fruit === 'ear') {
-        svg.appendChild(fruitGroup(crop, 41, 52, 7, STAGES[4]));
-        svg.appendChild(fruitGroup(crop, 60, 40, 7, STAGES[5]));
-      } else {
-        svg.appendChild(fruitGroup(crop, 50, 22, crop.fruit === 'leek' ? 6 : 11, STAGES[4]));
-      }
-    } else if (crop.kind === 'root') {
-      var root = fruitGroup(crop, 50, 84, 12, STAGES[3]);
-      root.setAttribute('class', 'p-part p-fruit p-root');
-      root.style.transformOrigin = '50px 100px';
-      svg.appendChild(root);
-      var ang = [-70, -35, 0, 35, 70];
-      for (var i = 0; i < ang.length; i++) {
-        var lf = leafPath(50, 76, 30, -90 + ang[i], crop.leaf, STAGES[Math.min(i, 2)]);
-        svg.appendChild(lf);
-      }
-    } else { // ground
-      svg.appendChild(leafPath(50, 96, 34, 195, crop.leaf, STAGES[0]));
-      svg.appendChild(leafPath(50, 96, 34, -15, crop.leaf, STAGES[1]));
-      svg.appendChild(leafPath(50, 92, 28, 230, crop.leaf, STAGES[2]));
-      svg.appendChild(leafPath(50, 92, 28, -50, crop.leaf, STAGES[2]));
-      var body = fruitGroup(crop, 50, 72, 20, STAGES[3]);
-      body.style.transformOrigin = '50px 96px';
-      svg.appendChild(body);
+    var ic = ICON[crop.fruit] || ICON.round;
+    var shapes = cropShapes(crop, 50, ic.cy, ic.r);
+    if (ic.sprig !== null) {
+      // two little leaves on top: it's a plant, not a ball
+      var y = ic.sprig;
+      svg.appendChild(svgEl('path', { d: 'M50 ' + (y + 4) + ' q-16 -4 -18 -16 q14 2 18 16 Z', fill: crop.leaf }));
+      svg.appendChild(svgEl('path', { d: 'M50 ' + (y + 4) + ' q16 -4 18 -16 q-14 2 -18 16 Z', fill: crop.leaf }));
     }
+    for (var i = 0; i < shapes.length; i++) svg.appendChild(shapes[i]);
     return svg;
   }
 
@@ -459,7 +429,7 @@
     plant.style.height = geo.plantH + 'px';
     var inner = document.createElement('div');
     inner.className = 'g-plant-inner';
-    inner.appendChild(makePlantSvg(crop));
+    inner.appendChild(makeCropSvg(crop));
     plant.appendChild(inner);
     layer.appendChild(plant);
 
@@ -474,10 +444,8 @@
     var bed = {
       i: i, crop: crop, x: x, el: el, plant: plant, inner: inner,
       wet: el.querySelector('.g-wet'),
-      parts: Array.prototype.slice.call(inner.querySelectorAll('.p-part')),
-      ripeEls: Array.prototype.slice.call(inner.querySelectorAll('.p-ripe')),
       gauge: gauge, gaugeFill: gsvg.fill,
-      need: need, size: size, water: 0, stage: -1, ripe: false, number: 0
+      need: need, size: size, water: 0, ripe: false, number: 0, happyUntil: 0
     };
     el.dataset.need = need.toFixed(2);
     el.dataset.size = size.toFixed(2);
@@ -526,24 +494,13 @@
 
   function easeOut(t) { return 1 - Math.pow(1 - t, 2.2); }
 
+  // Small to big, smoothly, the whole time it's being watered.
   function renderBed(bed) {
     var w = bed.water;
-    var s = bed.size * (0.14 + 0.86 * easeOut(w));
+    var s = bed.size * (0.22 + 0.78 * easeOut(w));
     bed.inner.style.transform = 'scale(' + s + ')';
     bed.wet.setAttribute('opacity', (w * 0.42).toFixed(3));
     bed.gaugeFill.setAttribute('y', (52 - 50 * w).toFixed(1));
-
-    // fruit ripening: swell and turn from green to its real color
-    var r = Math.max(0, Math.min(1, (w - STAGES[3]) / (1 - STAGES[3])));
-    for (var i = 0; i < bed.ripeEls.length; i++) bed.ripeEls[i].style.opacity = r.toFixed(3);
-
-    // parts unfurl at their water marks
-    for (var p = 0; p < bed.parts.length; p++) {
-      var part = bed.parts[p];
-      var at = parseFloat(part.getAttribute('data-at'));
-      var on = w >= at;
-      if (on !== part.classList.contains('is-on')) part.classList.toggle('is-on', on);
-    }
   }
 
   function water(bed, dt) {
@@ -551,12 +508,12 @@
     var before = bed.water;
     bed.water = Math.min(1, bed.water + dt / bed.need);
     renderBed(bed);
+    // happy to be watered: it wiggles as long as water is landing
+    bed.happyUntil = Date.now() + 220;
 
-    // each growth mark the water crosses: a little bounce and a note
-    for (var i = 0; i < STAGES.length; i++) {
-      if (before < STAGES[i] && bed.water >= STAGES[i]) {
-        boing(bed);
-        ToddlAudio.flowerNote(i + 1, true);
+    for (var i = 0; i < MARKS.length; i++) {
+      if (before < MARKS[i] && bed.water >= MARKS[i]) {
+        ToddlAudio.flowerNote(i + 2, true);
         if (window.ToddlFlow) ToddlFlow.extend();
       }
     }
@@ -744,6 +701,14 @@
         lastDropAt = now;
         spawnDrop(can.x, can.y, landY);
         if (Math.random() < 0.35) splash(can.x + (Math.random() - 0.5) * 10, landY);
+      }
+    }
+
+    var nowMs = Date.now();
+    for (var bi = 0; bi < beds.length; bi++) {
+      var happy = nowMs < beds[bi].happyUntil;
+      if (happy !== beds[bi].plant.classList.contains('is-happy')) {
+        beds[bi].plant.classList.toggle('is-happy', happy);
       }
     }
 

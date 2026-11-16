@@ -36,9 +36,16 @@
     } catch (e) { /* private mode */ }
   }
 
-  // No visit ever outstays its welcome: even if the child just pokes
-  // around without finishing anything, the next activity arrives.
-  var VISIT_MS = 70000;
+  // Two ways to play. Pick ONE game and it stays: a finished round
+  // lingers a moment and then the game quietly resets itself, and a
+  // long visit resets it too. Or Shuffle Play, which wanders between
+  // whichever games the grown-ups left switched on, never repeating
+  // the one just played.
+  var mode = 'single';
+  var VISIT_MS = 70000;          // shuffle: no visit outstays its welcome
+  var STAY_RESET_MS = 120000;    // single game: a fresh round after this long
+  var ROUND_LINGER_MS = 15000;   // single game: enjoy the finished round first
+  var restartTimer = null;
 
   var activeGame = null;
   var btnHome = document.getElementById('btn-home');
@@ -75,8 +82,35 @@
     if (visitTimer) window.clearTimeout(visitTimer);
     visitTimer = window.setTimeout(function () {
       visitTimer = null;
-      if (activeGame) window.ToddlFlow.next();
-    }, VISIT_MS);
+      if (!activeGame) return;
+      if (mode === 'shuffle') window.ToddlFlow.next();
+      else restartGame();
+    }, mode === 'shuffle' ? VISIT_MS : STAY_RESET_MS);
+  }
+
+  // The same game, fresh: the stage dips out for a beat and comes
+  // back with a new round.
+  function restartGame() {
+    if (!activeGame) return;
+    var name = activeGame;
+    var stageEl = document.getElementById(GAMES[name].stage);
+    stageEl.classList.add('is-resetting');
+    window.setTimeout(function () {
+      stageEl.classList.remove('is-resetting');
+      if (activeGame !== name) return;
+      openGame(name, false);
+    }, 420);
+  }
+
+  function enabledGames() {
+    var on = GAME_ORDER.filter(function (g) { return rotation[g]; });
+    return on.length ? on : GAME_ORDER.slice();
+  }
+
+  function pickShuffle(exclude) {
+    var pool = enabledGames().filter(function (g) { return g !== exclude; });
+    if (!pool.length) pool = enabledGames();
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function clearVisitTimer() {
@@ -104,18 +138,18 @@
   window.ToddlFlow = {
     next: function () {
       if (!activeGame) return;
-      var idx = GAME_ORDER.indexOf(activeGame);
-      // Walk forward to the next game the parents left in the rotation.
-      // If everything is switched off, fall back to the full rotation.
-      for (var step = 1; step <= GAME_ORDER.length; step++) {
-        var candidate = GAME_ORDER[(idx + step) % GAME_ORDER.length];
-        if (rotation[candidate]) {
-          openGame(candidate, true);
-          return;
-        }
+      if (mode === 'single') {
+        // Stay on this game: let the finished round be enjoyed, then reset.
+        if (restartTimer) return;
+        restartTimer = window.setTimeout(function () {
+          restartTimer = null;
+          restartGame();
+        }, ROUND_LINGER_MS);
+        return;
       }
-      openGame(GAME_ORDER[(idx + 1) % GAME_ORDER.length], true);
+      openGame(pickShuffle(activeGame), true);
     },
+    mode: function () { return mode; },
     // A game can ask for more time when something special is happening
     // (e.g. the galaxy sky) so the moment isn't cut short.
     extend: function () {
@@ -126,6 +160,7 @@
   function closeGame() {
     if (!activeGame) return;
     clearVisitTimer();
+    if (restartTimer) { window.clearTimeout(restartTimer); restartTimer = null; }
     GAMES[activeGame].module().stop();
     activeGame = null;
   }
@@ -142,9 +177,20 @@
       onTap(card, function () {
         ToddlAudio.unlock();
         ToddlAudio.tap();
+        mode = 'single';
         openGame(card.getAttribute('data-game'));
       });
     })(cards[i]);
+  }
+
+  var btnShuffle = document.getElementById('btn-shuffle');
+  if (btnShuffle) {
+    onTap(btnShuffle, function () {
+      ToddlAudio.unlock();
+      ToddlAudio.chime();
+      mode = 'shuffle';
+      openGame(pickShuffle(null));
+    });
   }
 
   // Buttons must not depend on synthesized clicks: with the global

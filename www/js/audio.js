@@ -355,53 +355,87 @@
     bellNote(PENTATONIC[i], soft ? 0.06 : 0.13);
   }
 
-  // Water pouring from the watering can: a soft looped burble of
-  // filtered noise, faded in and out. One pour at a time.
+  // Water trickling from the watering can: a soft high hiss bed under
+  // a stream of tiny droplet ticks and little rising plinks, like a
+  // thin stream splashing into a puddle. One pour at a time.
   var pour = null;
+  var noiseBuf = null;
+
+  function noise() {
+    if (!noiseBuf) {
+      var len = Math.floor(ctx.sampleRate * 1.0);
+      noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return noiseBuf;
+  }
+
+  function dropletTick() {
+    if (!pour) return;
+    var t0 = ctx.currentTime;
+    // a tiny splash: a short burst of narrow-band noise
+    var n = ctx.createBufferSource();
+    n.buffer = noise();
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2400 + Math.random() * 3600;
+    bp.Q.value = 2.4;
+    var g = ctx.createGain();
+    var v = 0.05 + Math.random() * 0.06;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(v, t0 + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.03 + Math.random() * 0.05);
+    n.connect(bp); bp.connect(g); g.connect(master);
+    n.start(t0);
+    n.stop(t0 + 0.1);
+    // now and then a droplet plinks, pitch rising as it lands
+    if (Math.random() < 0.32) {
+      var o = ctx.createOscillator();
+      o.type = 'sine';
+      var f = 1300 + Math.random() * 2600;
+      o.frequency.setValueAtTime(f, t0);
+      o.frequency.exponentialRampToValueAtTime(f * 1.3, t0 + 0.05);
+      var og = ctx.createGain();
+      og.gain.setValueAtTime(0.0001, t0);
+      og.gain.exponentialRampToValueAtTime(0.025 + Math.random() * 0.03, t0 + 0.003);
+      og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
+      o.connect(og); og.connect(master);
+      o.start(t0);
+      o.stop(t0 + 0.1);
+    }
+    pour.timer = window.setTimeout(dropletTick, 30 + Math.random() * 60);
+  }
 
   function pourStart() {
     if (!settings.sound || !ensureContext() || pour) return;
     var t0 = ctx.currentTime;
-    var len = Math.floor(ctx.sampleRate * 1.5);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     var src = ctx.createBufferSource();
-    src.buffer = buf;
+    src.buffer = noise();
     src.loop = true;
-    var bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = 1700;
-    bp.Q.value = 0.8;
-    var lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 3400;
+    var hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 2600;
     var g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.07, t0 + 0.18);
-    // a slow wobble on the filter is the burble
-    var lfo = ctx.createOscillator();
-    lfo.frequency.value = 5.5;
-    var lg = ctx.createGain();
-    lg.gain.value = 450;
-    lfo.connect(lg); lg.connect(bp.frequency);
-    src.connect(bp); bp.connect(lp); lp.connect(g); g.connect(master);
-    lfo.start(t0);
+    g.gain.exponentialRampToValueAtTime(0.022, t0 + 0.2);
+    src.connect(hp); hp.connect(g); g.connect(master);
     src.start(t0);
-    pour = { src: src, g: g, lfo: lfo };
+    pour = { src: src, g: g, timer: null };
+    dropletTick();
   }
 
   function pourStop() {
     if (!pour || !ctx) return;
     var p = pour;
     pour = null;
+    if (p.timer) window.clearTimeout(p.timer);
     var t = ctx.currentTime;
     try {
       p.g.gain.cancelScheduledValues(t);
       p.g.gain.setValueAtTime(Math.max(p.g.gain.value, 0.0001), t);
-      p.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      p.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
       p.src.stop(t + 0.3);
-      p.lfo.stop(t + 0.3);
     } catch (e) { /* already stopped */ }
   }
 

@@ -204,6 +204,40 @@ button {
   margin-top: 2px;
 }
 
+/* Shuffle Play: one friendly pill between the title and the cards */
+.shuffle-play {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(165deg, #fff8e8 0%, #f5e4bf 100%);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: clamp(1rem, 3.4vw, 1.2rem);
+  box-shadow:
+    0 2px 4px rgba(91, 84, 76, 0.06),
+    0 10px 26px rgba(91, 84, 76, 0.14),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: transform 0.35s var(--ease-spring);
+  animation: shuffle-breathe 4.5s ease-in-out infinite;
+}
+
+.shuffle-play svg { width: 30px; height: 30px; }
+.shuffle-line { fill: none; stroke: #a8905f; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.shuffle-head { fill: #a8905f; }
+
+.shuffle-play:active { transform: scale(0.95); animation-play-state: paused; }
+
+@keyframes shuffle-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+
 .home-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(130px, 210px));
@@ -456,7 +490,11 @@ button {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  transition: opacity 0.4s var(--ease-gentle);
 }
+
+/* A single game resetting itself: dip out, come back fresh */
+.game-stage.is-resetting { opacity: 0; }
 
 .home-button {
   position: absolute;
@@ -1189,6 +1227,14 @@ button {
 
 .g-plant.is-boing svg { animation: plant-boing 0.6s var(--ease-spring); }
 
+/* Happy to be watered: a quick glad wiggle while the water lands */
+.g-plant.is-happy svg { animation: plant-happy 0.32s ease-in-out infinite alternate; }
+
+@keyframes plant-happy {
+  from { rotate: -7deg; scale: 1.05 0.95; }
+  to   { rotate: 7deg;  scale: 0.96 1.05; }
+}
+
 .g-plant.is-ripe svg { animation: plant-sway 5s ease-in-out infinite alternate; }
 
 .g-plant.is-ripe.is-boing svg {
@@ -1206,17 +1252,6 @@ button {
   from { rotate: -2.2deg; }
   to   { rotate: 2.2deg; }
 }
-
-/* Every leaf, stem and fruit unfurls from nothing at its own water mark */
-.p-part {
-  transform-box: view-box;
-  transform: scale(0);
-  transition: transform 0.7s cubic-bezier(0.34, 1.5, 0.5, 1);
-}
-
-.p-part.is-on { transform: scale(1); }
-
-.p-ripe { opacity: 0; transition: opacity 0.3s linear; }
 
 /* The droplet gauge: how much water this bed has had */
 .g-gauge {

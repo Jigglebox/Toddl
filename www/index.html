@@ -22,6 +22,16 @@
       <p class="home-subtitle">calm little games</p>
     </header>
 
+    <button class="shuffle-play" id="btn-shuffle" aria-label="Shuffle play">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M14 32 H32 L64 68 H80" class="shuffle-line"/>
+        <path d="M14 68 H32 L64 32 H80" class="shuffle-line"/>
+        <path d="M76 22 L92 32 L76 42 Z" class="shuffle-head"/>
+        <path d="M76 58 L92 68 L76 78 Z" class="shuffle-head"/>
+      </svg>
+      <span>Shuffle play</span>
+    </button>
+
     <nav class="home-grid" aria-label="Games">
       <button class="game-card card-bubbles" data-game="bubbles" aria-label="Bubbles">
         <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -160,43 +170,45 @@
         </button>
       </div>
 
-      <h3 class="parents-subhead">Games in the rotation</h3>
+      <h3 class="parents-subhead">Games in Shuffle Play</h3>
       <p class="parents-note parents-note-small">
-        Play flows from game to game by itself. Turn off any game your
-        child isn't enjoying and the rotation will skip it.
+        Shuffle Play wanders from game to game by itself. Turn off any
+        game your child isn't enjoying and Shuffle will skip it. Picking
+        a single game from the home screen stays on that game, resetting
+        it after each round.
       </p>
 
       <div class="setting-row">
         <span class="setting-name">Bubbles</span>
-        <button class="toggle" id="toggle-game-bubbles" role="switch" aria-checked="true" aria-label="Bubbles in rotation">
+        <button class="toggle" id="toggle-game-bubbles" role="switch" aria-checked="true" aria-label="Bubbles in Shuffle Play">
           <span class="toggle-knob"></span>
         </button>
       </div>
 
       <div class="setting-row">
         <span class="setting-name">Shapes</span>
-        <button class="toggle" id="toggle-game-shapes" role="switch" aria-checked="true" aria-label="Shapes in rotation">
+        <button class="toggle" id="toggle-game-shapes" role="switch" aria-checked="true" aria-label="Shapes in Shuffle Play">
           <span class="toggle-knob"></span>
         </button>
       </div>
 
       <div class="setting-row">
         <span class="setting-name">Colors</span>
-        <button class="toggle" id="toggle-game-colors" role="switch" aria-checked="true" aria-label="Colors in rotation">
+        <button class="toggle" id="toggle-game-colors" role="switch" aria-checked="true" aria-label="Colors in Shuffle Play">
           <span class="toggle-knob"></span>
         </button>
       </div>
 
       <div class="setting-row">
         <span class="setting-name">Garden</span>
-        <button class="toggle" id="toggle-game-garden" role="switch" aria-checked="true" aria-label="Garden in rotation">
+        <button class="toggle" id="toggle-game-garden" role="switch" aria-checked="true" aria-label="Garden in Shuffle Play">
           <span class="toggle-knob"></span>
         </button>
       </div>
 
       <div class="setting-row">
         <span class="setting-name">Piano</span>
-        <button class="toggle" id="toggle-game-piano" role="switch" aria-checked="true" aria-label="Piano in rotation">
+        <button class="toggle" id="toggle-game-piano" role="switch" aria-checked="true" aria-label="Piano in Shuffle Play">
           <span class="toggle-knob"></span>
         </button>
       </div>
