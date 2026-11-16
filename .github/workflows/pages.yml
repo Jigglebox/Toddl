@@ -17,7 +17,9 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # queue rather than cancel: a rejected deploy from one branch must not
+  # cancel a good one from the other
+  cancel-in-progress: false
 
 jobs:
   deploy:
