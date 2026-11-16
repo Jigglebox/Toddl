@@ -36,40 +36,31 @@
 
   var SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
-  /* kind:  bush  — stem, leaves, fruit hanging
-            root  — leafy top, root pushes up out of the soil
-            ground— a round crop sitting on the soil
-            stalk — tall stalk with leaves, crop on top        */
-  var CROPS = {
-    spring: [
-      { name: 'strawberry', kind: 'bush',   fruit: 'berry',   green: '#b9d08c', ripe: '#e0706c', leaf: '#8fb07a' },
-      { name: 'pea',        kind: 'bush',   fruit: 'pod',     green: '#c3d79b', ripe: '#8fbf72', leaf: '#9cc188' },
-      { name: 'radish',     kind: 'root',   fruit: 'round',   green: '#e9d6dc', ripe: '#e06a8c', leaf: '#93b67f' },
-      { name: 'lettuce',    kind: 'ground', fruit: 'leafy',   green: '#c8dfa0', ripe: '#9fcf7a', leaf: '#8fc278' },
-      { name: 'carrot',     kind: 'root',   fruit: 'taper',   green: '#f1cfa2', ripe: '#ec9544', leaf: '#86b26d' }
-    ],
-    summer: [
-      { name: 'tomato',     kind: 'bush',   fruit: 'round',   green: '#b4d089', ripe: '#e46b55', leaf: '#86ad72' },
-      { name: 'corn',       kind: 'stalk',  fruit: 'ear',     green: '#cfe09c', ripe: '#f3d35a', leaf: '#8fbd6e' },
-      { name: 'watermelon', kind: 'ground', fruit: 'melon',   green: '#a9c98b', ripe: '#6fae5e', leaf: '#8ab873' },
-      { name: 'blueberry',  kind: 'bush',   fruit: 'cluster', green: '#b7c9a0', ripe: '#6e7fc2', leaf: '#8fb37c' },
-      { name: 'cucumber',   kind: 'bush',   fruit: 'pod',     green: '#bcd79a', ripe: '#6fa75a', leaf: '#8fbd77' }
-    ],
-    autumn: [
-      { name: 'pumpkin',    kind: 'ground', fruit: 'pumpkin', green: '#c7cf90', ripe: '#ec9a46', leaf: '#9aab6a' },
-      { name: 'apple',      kind: 'bush',   fruit: 'round',   green: '#bcd38f', ripe: '#d9605f', leaf: '#8fae6f' },
-      { name: 'grapes',     kind: 'bush',   fruit: 'cluster', green: '#c2d6a1', ripe: '#9b7bc0', leaf: '#97b47a' },
-      { name: 'beet',       kind: 'root',   fruit: 'round',   green: '#e3c6cf', ripe: '#b04a73', leaf: '#8fb17a' },
-      { name: 'broccoli',   kind: 'stalk',  fruit: 'floret',  green: '#bfd7a3', ripe: '#6f9f5a', leaf: '#8fb77c' }
-    ],
-    winter: [
-      { name: 'cabbage',    kind: 'ground', fruit: 'leafy',   green: '#cfe0bd', ripe: '#9cc49a', leaf: '#8fb594' },
-      { name: 'orange',     kind: 'bush',   fruit: 'round',   green: '#c5d79f', ripe: '#f0a24a', leaf: '#7fa872' },
-      { name: 'turnip',     kind: 'root',   fruit: 'round',   green: '#eadfe6', ripe: '#f2f0ee', leaf: '#93b687' },
-      { name: 'leek',       kind: 'stalk',  fruit: 'leek',    green: '#dfe9c9', ripe: '#f4f6ec', leaf: '#8fb88a' },
-      { name: 'kale',       kind: 'stalk',  fruit: 'ruffle',  green: '#bdd4ad', ripe: '#6f9d79', leaf: '#86ae82' }
-    ]
+  /* The approved character set (resources/garden-characters): flat
+     pastel kawaii sprites, one art style. Each season draws its five
+     from these eleven, until more are made. */
+  var SPRITES = {
+    'watering-can': { w: 703, h: 618 },
+    strawberry: { w: 541, h: 650, scale: 1.08 },
+    pea:        { w: 332, h: 855, scale: 1.1 },
+    lettuce:    { w: 754, h: 615, scale: 0.84 },
+    carrot:     { w: 414, h: 813, scale: 1.1 },
+    tomato:     { w: 533, h: 592, scale: 1.0 },
+    blueberry:  { w: 574, h: 638, scale: 0.98 },
+    pumpkin:    { w: 542, h: 632, scale: 1.0 },
+    apple:      { w: 590, h: 692, scale: 1.02 },
+    broccoli:   { w: 716, h: 720, scale: 0.8 },
+    cabbage:    { w: 836, h: 703, scale: 0.8 },
+    orange:     { w: 558, h: 643, scale: 0.98 }
   };
+  var CROPS = {
+    spring: ['strawberry', 'pea', 'lettuce', 'carrot', 'blueberry'],
+    summer: ['tomato', 'blueberry', 'strawberry', 'pea', 'carrot'],
+    autumn: ['pumpkin', 'apple', 'broccoli', 'carrot', 'cabbage'],
+    winter: ['cabbage', 'orange', 'broccoli', 'apple', 'lettuce']
+  };
+  var CAN_TIP = { x: 0.105, y: 0.19 };     // the sprinkler rose, in sprite fractions
+  var CROP_BASE_H = 0.30;                 // crop height = 0.30 x stage height x scale
 
   var SCENES = {
     spring: { sun: { x: '78%', y: '16%', size: '30vmin', color: 'rgba(250, 240, 190, 0.9)', halo: 'rgba(236, 217, 160, 0.3)' },
@@ -177,203 +168,14 @@
     return { svg: svg, fill: fill };
   }
 
-  // The can: 120 x 90 local units; the spout tip is at (4, 22).
-  function makeCanSvg() {
-    var svg = svgEl('svg', { viewBox: '0 0 120 90' });
-    svg.style.overflow = 'visible';
-    svg.appendChild(svgEl('path', {
-      d: 'M44 30 Q44 10 65 10 Q86 10 86 30', stroke: '#8fa3b8', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round'
-    }));
-    svg.appendChild(svgEl('path', {
-      d: 'M34 46 L8 18 L2 24 L30 60 Z', fill: '#9fb4c8', stroke: '#7d93a9', 'stroke-width': 2, 'stroke-linejoin': 'round'
-    }));
-    svg.appendChild(svgEl('circle', { cx: 5, cy: 21, r: 7, fill: '#b7c8d8', stroke: '#7d93a9', 'stroke-width': 2 }));
-    svg.appendChild(svgEl('rect', { x: 30, y: 30, width: 72, height: 55, rx: 10, fill: '#a9bfd3', stroke: '#7d93a9', 'stroke-width': 2.5 }));
-    svg.appendChild(svgEl('rect', { x: 30, y: 30, width: 72, height: 12, rx: 6, fill: '#8ea6bd' }));
-    svg.appendChild(svgEl('ellipse', { cx: 52, cy: 58, rx: 9, ry: 14, fill: 'rgba(255,255,255,0.28)' }));
-    svg.appendChild(svgEl('path', {
-      d: 'M102 42 Q116 50 102 72', stroke: '#8fa3b8', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round'
-    }));
-    return svg;
-  }
-
-  /* ---------- drawing: the crops ----------
-     One picture per crop, drawn at full color in a 100 x 100 box
-     with the ground at y = 100. It simply grows from small to big
-     as the bed is watered, with a little leaf sprig on top.        */
-
-  function cropShapes(crop, cx, cy, r) {
-    var out = [];
-    function one(makeShape) { out.push(makeShape(crop.ripe)); }
-    switch (crop.fruit) {
-      case 'berry':
-        one(function (c) {
-          return svgEl('path', {
-            d: 'M' + cx + ' ' + (cy - r) + ' C' + (cx + r * 1.3) + ' ' + (cy - r) + ' ' + (cx + r * 1.1) + ' ' + (cy + r * 0.9) +
-               ' ' + cx + ' ' + (cy + r * 1.25) + ' C' + (cx - r * 1.1) + ' ' + (cy + r * 0.9) + ' ' + (cx - r * 1.3) + ' ' + (cy - r) +
-               ' ' + cx + ' ' + (cy - r) + ' Z', fill: c
-          });
-        });
-        for (var si = 0; si < 7; si++) {
-          var a = si * 0.9 + 0.3, rr = r * (0.35 + 0.35 * (si % 3) / 2);
-          out.push(svgEl('circle', { cx: cx + Math.cos(a) * rr * 1.3, cy: cy + Math.sin(a) * rr * 1.2 + r * 0.1, r: r * 0.07, fill: '#fff3c8' }));
-        }
-        out.push(svgEl('path', { d: 'M' + (cx - r * 0.75) + ' ' + (cy - r * 0.85) + ' L' + cx + ' ' + (cy - r * 1.35) + ' L' + (cx + r * 0.75) + ' ' + (cy - r * 0.85) + ' Z', fill: crop.leaf }));
-        break;
-      case 'pod':
-        one(function (c) {
-          return svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.5, ry: r * 1.5, fill: c, transform: 'rotate(16 ' + cx + ' ' + cy + ')' });
-        });
-        for (var pi = -1; pi <= 1; pi++) {
-          out.push(svgEl('circle', { cx: cx + pi * r * 0.14, cy: cy + pi * r * 0.6, r: r * 0.26, fill: 'rgba(255,255,255,0.22)' }));
-        }
-        break;
-      case 'cluster':
-        one(function (c) {
-          var g = svgEl('g', {});
-          var pts = [[0, -0.9], [-0.8, -0.2], [0.8, -0.2], [0, 0.5], [-0.5, 1.1], [0.5, 1.1]];
-          for (var i = 0; i < pts.length; i++) {
-            g.appendChild(svgEl('circle', { cx: cx + pts[i][0] * r * 0.8, cy: cy + pts[i][1] * r * 0.8, r: r * 0.55, fill: c }));
-            g.appendChild(svgEl('circle', { cx: cx + pts[i][0] * r * 0.8 - r * 0.15, cy: cy + pts[i][1] * r * 0.8 - r * 0.15, r: r * 0.16, fill: 'rgba(255,255,255,0.3)' }));
-          }
-          return g;
-        });
-        break;
-      case 'taper':
-        one(function (c) {
-          return svgEl('path', {
-            d: 'M' + (cx - r) + ' ' + (cy - r * 0.6) + ' Q' + cx + ' ' + (cy + r * 2.6) + ' ' + (cx + r) + ' ' + (cy - r * 0.6) +
-               ' Q' + cx + ' ' + (cy - r * 1.1) + ' ' + (cx - r) + ' ' + (cy - r * 0.6) + ' Z', fill: c
-          });
-        });
-        for (var ti = 0; ti < 3; ti++) {
-          var ty = cy + r * (0.1 + ti * 0.6), tw = r * (0.8 - ti * 0.2);
-          out.push(svgEl('line', { x1: cx - tw, y1: ty, x2: cx + tw, y2: ty, stroke: 'rgba(120,60,20,0.25)', 'stroke-width': r * 0.08, 'stroke-linecap': 'round' }));
-        }
-        break;
-      case 'melon':
-        one(function (c) {
-          var g = svgEl('g', {});
-          g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 1.3, ry: r, fill: c }));
-          for (var i = -1; i <= 1; i++) {
-            g.appendChild(svgEl('path', {
-              d: 'M' + (cx + i * r * 0.5) + ' ' + (cy - r * 0.95) + ' q' + (r * 0.25) + ' ' + r + ' 0 ' + (r * 1.9),
-              stroke: 'rgba(40,80,40,0.35)', 'stroke-width': r * 0.14, fill: 'none'
-            }));
-          }
-          return g;
-        });
-        break;
-      case 'pumpkin':
-        one(function (c) {
-          var g = svgEl('g', {});
-          g.appendChild(svgEl('ellipse', { cx: cx - r * 0.75, cy: cy, rx: r * 0.7, ry: r * 0.95, fill: c }));
-          g.appendChild(svgEl('ellipse', { cx: cx + r * 0.75, cy: cy, rx: r * 0.7, ry: r * 0.95, fill: c }));
-          g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.75, ry: r, fill: c }));
-          g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.3, ry: r * 0.9, fill: 'rgba(255,255,255,0.18)' }));
-          return g;
-        });
-        out.push(svgEl('rect', { x: cx - r * 0.12, y: cy - r * 1.25, width: r * 0.24, height: r * 0.4, rx: r * 0.08, fill: '#8d9a62' }));
-        break;
-      case 'leafy':
-        one(function (c) {
-          var g = svgEl('g', {});
-          for (var i = 0; i < 6; i++) {
-            g.appendChild(svgEl('ellipse', {
-              cx: cx, cy: cy - r * 0.45, rx: r * 0.5, ry: r * 0.95, fill: c,
-              transform: 'rotate(' + (i * 60) + ' ' + cx + ' ' + cy + ')', opacity: 0.9
-            }));
-          }
-          g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r * 0.6, fill: c }));
-          g.appendChild(svgEl('circle', { cx: cx - r * 0.15, cy: cy - r * 0.15, r: r * 0.22, fill: 'rgba(255,255,255,0.3)' }));
-          return g;
-        });
-        break;
-      case 'ear':
-        one(function (c) {
-          var g = svgEl('g', {});
-          g.appendChild(svgEl('ellipse', { cx: cx, cy: cy, rx: r * 0.5, ry: r * 1.4, fill: c }));
-          for (var i = -1; i <= 1; i++) {
-            g.appendChild(svgEl('line', { x1: cx + i * r * 0.25, y1: cy - r * 1.1, x2: cx + i * r * 0.25, y2: cy + r * 1.1, stroke: 'rgba(120,100,40,0.25)', 'stroke-width': r * 0.08 }));
-          }
-          return g;
-        });
-        out.push(svgEl('path', { d: 'M' + (cx - r * 0.5) + ' ' + (cy + r * 0.6) + ' q' + (-r * 0.4) + ' ' + (-r * 1.6) + ' ' + (r * 0.6) + ' ' + (-r * 2.4) + ' q' + (-r * 0.2) + ' ' + (r * 1.2) + ' ' + (-r * 0.1) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf, opacity: 0.85 }));
-        out.push(svgEl('path', { d: 'M' + (cx + r * 0.5) + ' ' + (cy + r * 0.6) + ' q' + (r * 0.4) + ' ' + (-r * 1.6) + ' ' + (-r * 0.6) + ' ' + (-r * 2.4) + ' q' + (r * 0.2) + ' ' + (r * 1.2) + ' ' + (r * 0.1) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf, opacity: 0.85 }));
-        break;
-      case 'floret':
-        out.push(svgEl('rect', { x: cx - r * 0.3, y: cy + r * 0.4, width: r * 0.6, height: r * 1.4, rx: r * 0.2, fill: '#cfe0b4' }));
-        one(function (c) {
-          var g = svgEl('g', {});
-          var pts = [[0, 0], [-0.9, 0.2], [0.9, 0.2], [-0.5, -0.7], [0.5, -0.7], [0, 0.8]];
-          for (var i = 0; i < pts.length; i++) {
-            g.appendChild(svgEl('circle', { cx: cx + pts[i][0] * r, cy: cy + pts[i][1] * r, r: r * 0.75, fill: c }));
-          }
-          return g;
-        });
-        break;
-      case 'leek':
-        one(function (c) {
-          var g = svgEl('g', {});
-          g.appendChild(svgEl('rect', { x: cx - r * 0.5, y: cy - r * 1.6, width: r, height: r * 3.2, rx: r * 0.3, fill: c }));
-          g.appendChild(svgEl('rect', { x: cx - r * 0.5, y: cy - r * 1.6, width: r, height: r * 1.3, rx: r * 0.3, fill: crop.leaf, opacity: 0.75 }));
-          return g;
-        });
-        out.push(svgEl('path', { d: 'M' + cx + ' ' + (cy - r * 1.2) + ' q' + (-r * 1.4) + ' ' + (-r * 0.8) + ' ' + (-r * 1.2) + ' ' + (-r * 2.4) + ' q' + (r * 0.9) + ' ' + (r * 0.9) + ' ' + (r * 1.2) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf }));
-        out.push(svgEl('path', { d: 'M' + cx + ' ' + (cy - r * 1.2) + ' q' + (r * 1.4) + ' ' + (-r * 0.8) + ' ' + (r * 1.2) + ' ' + (-r * 2.4) + ' q' + (-r * 0.9) + ' ' + (r * 0.9) + ' ' + (-r * 1.2) + ' ' + (r * 2.4) + ' Z', fill: crop.leaf }));
-        break;
-      case 'ruffle':
-        one(function (c) {
-          var g = svgEl('g', {});
-          for (var i = 0; i < 5; i++) {
-            g.appendChild(svgEl('ellipse', {
-              cx: cx + (i - 2) * r * 0.55, cy: cy - Math.abs(i - 2) * r * 0.3, rx: r * 0.55, ry: r * 1.1, fill: c,
-              transform: 'rotate(' + ((i - 2) * 22) + ' ' + (cx + (i - 2) * r * 0.55) + ' ' + cy + ')'
-            }));
-          }
-          return g;
-        });
-        break;
-      default: // round
-        one(function (c) {
-          var g = svgEl('g', {});
-          g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r, fill: c }));
-          g.appendChild(svgEl('circle', { cx: cx - r * 0.3, cy: cy - r * 0.3, r: r * 0.3, fill: 'rgba(255,255,255,0.3)' }));
-          return g;
-        });
-    }
-    return out;
-  }
-
-  // Where each picture sits in the box, and where its leaf sprig goes.
-  var ICON = {
-    berry:   { cy: 62, r: 26, sprig: null },
-    pod:     { cy: 60, r: 24, sprig: 24 },
-    round:   { cy: 62, r: 34, sprig: 28 },
-    cluster: { cy: 58, r: 26, sprig: 24 },
-    taper:   { cy: 46, r: 20, sprig: 24 },
-    melon:   { cy: 66, r: 30, sprig: 36 },
-    pumpkin: { cy: 66, r: 30, sprig: null },
-    leafy:   { cy: 66, r: 24, sprig: null },
-    ear:     { cy: 60, r: 26, sprig: null },
-    floret:  { cy: 60, r: 22, sprig: null },
-    leek:    { cy: 58, r: 16, sprig: null },
-    ruffle:  { cy: 64, r: 22, sprig: null }
-  };
-
-  function makeCropSvg(crop) {
-    var svg = svgEl('svg', { viewBox: '0 0 100 100', preserveAspectRatio: 'xMidYMax meet' });
-    svg.style.overflow = 'visible';
-    var ic = ICON[crop.fruit] || ICON.round;
-    var shapes = cropShapes(crop, 50, ic.cy, ic.r);
-    if (ic.sprig !== null) {
-      // two little leaves on top: it's a plant, not a ball
-      var y = ic.sprig;
-      svg.appendChild(svgEl('path', { d: 'M50 ' + (y + 4) + ' q-16 -4 -18 -16 q14 2 18 16 Z', fill: crop.leaf }));
-      svg.appendChild(svgEl('path', { d: 'M50 ' + (y + 4) + ' q16 -4 18 -16 q-14 2 -18 16 Z', fill: crop.leaf }));
-    }
-    for (var i = 0; i < shapes.length; i++) svg.appendChild(shapes[i]);
-    return svg;
+  function sprite(name) {
+    var img = document.createElement('img');
+    img.className = 'g-sprite';
+    img.src = 'img/garden/' + name + '.webp';
+    img.alt = '';
+    img.draggable = false;
+    img.decoding = 'async';
+    return img;
   }
 
   /* ---------- layout ---------- */
@@ -387,13 +189,9 @@
       bw: Math.min(spacing * 0.86, 200),
       bh: Math.max(22, H * 0.08),
       soilY: H * 0.9,
-      plantH: H * 0.58,
       canW: Math.max(84, Math.min(W * 0.14, 130))
     };
     geo.soilTop = geo.soilY - geo.bh;
-    geo.plantW = Math.min(geo.bw * 1.05, geo.plantH * 1.1);
-    // the 100-unit crop drawing is fitted bottom-center into the box
-    geo.plantUnit = Math.min(geo.plantW, geo.plantH) / 100;
 
     layer.innerHTML = '';
     beds = [];
@@ -402,7 +200,7 @@
     leaving = false;
     endTouches = 0;
 
-    var crops = shuffle(CROPS[season].slice());
+    var crops = shuffle(CROPS[season].slice()).map(function (n) { return { name: n }; });
     for (var i = 0; i < BEDS; i++) beds.push(makeBed(i, crops[i], spacing * (i + 0.5)));
 
     can = makeCan();
@@ -419,17 +217,22 @@
     layer.appendChild(el);
 
     var need = NEED_MIN + Math.random() * (NEED_MAX - NEED_MIN);
-    var size = 0.62 + (need - NEED_MIN) / (NEED_MAX - NEED_MIN) * 0.38;   // 0.62 .. 1
+    var size = 0.78 + (need - NEED_MIN) / (NEED_MAX - NEED_MIN) * 0.42;   // 0.78 .. 1.2
 
+    // full-grown height: the pack's base (0.30 x stage) x its per-crop
+    // scale x this bed's thirst
+    var sp = SPRITES[crop.name];
+    var fullH = Math.min(geo.H * CROP_BASE_H * (sp.scale || 1) * size, geo.soilTop * 0.92);
+    var fullW = fullH * sp.w / sp.h;
     var plant = document.createElement('div');
     plant.className = 'g-plant';
     plant.style.left = x + 'px';
-    plant.style.top = (geo.soilTop + geo.bh * 0.25) + 'px';
-    plant.style.width = geo.plantW + 'px';
-    plant.style.height = geo.plantH + 'px';
+    plant.style.top = (geo.soilTop + geo.bh * 0.3) + 'px';
+    plant.style.width = fullW + 'px';
+    plant.style.height = fullH + 'px';
     var inner = document.createElement('div');
     inner.className = 'g-plant-inner';
-    inner.appendChild(makeCropSvg(crop));
+    inner.appendChild(sprite(crop.name));
     plant.appendChild(inner);
     layer.appendChild(plant);
 
@@ -444,7 +247,7 @@
     var bed = {
       i: i, crop: crop, x: x, el: el, plant: plant, inner: inner,
       wet: el.querySelector('.g-wet'),
-      gauge: gauge, gaugeFill: gsvg.fill,
+      gauge: gauge, gaugeFill: gsvg.fill, fullH: fullH,
       need: need, size: size, water: 0, ripe: false, number: 0, happyUntil: 0
     };
     el.dataset.need = need.toFixed(2);
@@ -464,20 +267,22 @@
   function makeCan() {
     var el = document.createElement('div');
     el.className = 'g-can is-idle is-glow';
-    var k = geo.canW / 120;
+    var sp = SPRITES['watering-can'];
+    var canH = geo.canW * sp.h / sp.w;
     el.style.width = geo.canW + 'px';
-    el.style.height = (90 * k) + 'px';
+    el.style.height = canH + 'px';
     var float = document.createElement('div');
     float.className = 'g-can-float';
     var body = document.createElement('div');
     body.className = 'g-can-body';
-    body.style.transformOrigin = (4 * k) + 'px ' + (22 * k) + 'px';
-    body.appendChild(makeCanSvg());
+    var tipX = geo.canW * CAN_TIP.x, tipY = canH * CAN_TIP.y;
+    body.style.transformOrigin = tipX + 'px ' + tipY + 'px';
+    body.appendChild(sprite('watering-can'));
     float.appendChild(body);
     el.appendChild(float);
     layer.appendChild(el);
     var c = {
-      el: el, k: k,
+      el: el, tipX: tipX, tipY: tipY,
       x: geo.W * 0.16, y: geo.H * 0.42,      // spout-tip position
       tx: 0, ty: 0, pouring: false, held: false
     };
@@ -487,7 +292,7 @@
   }
 
   function placeCan(c) {
-    c.el.style.transform = 'translate(' + (c.x - 4 * c.k) + 'px,' + (c.y - 22 * c.k) + 'px)';
+    c.el.style.transform = 'translate(' + (c.x - c.tipX) + 'px,' + (c.y - c.tipY) + 'px)';
   }
 
   /* ---------- rendering a bed from its water level ---------- */
@@ -497,7 +302,7 @@
   // Small to big, smoothly, the whole time it's being watered.
   function renderBed(bed) {
     var w = bed.water;
-    var s = bed.size * (0.22 + 0.78 * easeOut(w));
+    var s = 0.22 + 0.78 * easeOut(w);
     bed.inner.style.transform = 'scale(' + s + ')';
     bed.wet.setAttribute('opacity', (w * 0.42).toFixed(3));
     bed.gaugeFill.setAttribute('y', (52 - 50 * w).toFixed(1));
@@ -545,13 +350,10 @@
     if (ripeCount === BEDS) later(finale, 1200);
   }
 
-  // Where the crop's drawing actually ends, in stage px (the plant box
-  // is taller than most crops, so the number must not float away).
+  // Where the crop's picture currently ends, in stage px.
   function plantTop(bed) {
-    var bottom = geo.soilTop + geo.bh * 0.25;
-    var topUnits = 0;
-    try { topUnits = bed.inner.querySelector('svg').getBBox().y; } catch (e) { /* no bbox */ }
-    return bottom - (100 - topUnits) * geo.plantUnit * bed.size;
+    var bottom = geo.soilTop + geo.bh * 0.3;
+    return bottom - bed.fullH * (0.22 + 0.78 * easeOut(bed.water));
   }
 
   function boing(bed) {

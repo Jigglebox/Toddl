@@ -148,10 +148,9 @@ gauge beside it. A watering can floats at the left, glowing softly: the
 invitation. Touch anywhere and the can flies to the finger and tips to
 pour; drag it over a bed and the water lands on the **soil** (the gauge
 only shows how much the bed has drunk — the stream never aims at it).
-The crop grows *while* the water is landing — one simple picture of the
-fruit or vegetable, drawn at full color with a little leaf sprig, that
-scales smoothly from small to big as the bed drinks, wiggling happily the
-whole time water is hitting it (soft bell notes mark the way). The pour
+The crop grows *while* the water is landing — its character scales
+smoothly from small to big as the bed drinks, wiggling happily the whole
+time water is hitting it (soft bell notes mark the way). The pour
 itself sounds like a trickle: a thin hiss under a patter of tiny droplet
 ticks and rising plinks. When a bed's droplet is full the crop ripens
 with a bounce and a sparkle, Toddl says
@@ -163,13 +162,23 @@ between beds simply soaks in.
 water (about 1.5–4 seconds of pouring), and the thirstier the bed, the
 bigger its crop grows — patience makes bigger things.
 
-**The crops follow the seasons**, and so does the sky: spring (strawberry,
-pea, radish, lettuce, carrot) under drifting blossom petals; summer
-(tomato, corn, watermelon, blueberry, cucumber) under a big warm sun;
-autumn (pumpkin, apple, grapes, beet, broccoli) with leaves tumbling
-down; winter (cabbage, orange, turnip, leek, kale) with snow falling on
-white hills. The first visit shows the real season; each visit after
-moves one season along, and Toddl names the season as it opens.
+**One art style.** The can and every crop are characters from the
+approved sprite set in `resources/garden-characters/` (flat pastel kawaii
+with little dot faces, shipped as WebP in `www/img/garden/`): watering
+can, strawberry, pea, lettuce, carrot, tomato, blueberry, pumpkin, apple,
+broccoli, cabbage, orange. Nothing hand-drawn is mixed in; crops without
+an approved sprite simply aren't in the game yet. Display size follows
+the pack's rule (0.30 × stage height × per-crop scale), times the bed's
+thirst.
+
+**The sky follows the seasons**, and each season draws its five crops
+from the approved set: spring (strawberry, pea, lettuce, carrot,
+blueberry) under drifting blossom petals; summer (tomato, blueberry,
+strawberry, pea, carrot) under a big warm sun; autumn (pumpkin, apple,
+broccoli, carrot, cabbage) with leaves tumbling down; winter (cabbage,
+orange, broccoli, apple, lettuce) with snow falling on white hills. The
+first visit shows the real season; each visit after moves one season
+along, and Toddl names the season as it opens.
 
 Once all five are ripe the garden bounces in a chime, the child can tap
 any crop to hear its name, and the next activity drifts in after a
@@ -180,8 +189,8 @@ short stretch of play or a quiet pause.
   happens only while water is actually landing), patience, and the
   vocabulary of fruits, vegetables, and seasons.
 - *Calm by design:* one can, one stream, one thing growing at a time
-  under the finger; one picture per crop (no stems, vines or stages to
-  decode); the drifting season particles are few and slow.
+  under the finger; one character per crop in one art style; the drifting
+  season particles are few and slow.
 
 ### 5. Piano — letters & pitch
 Eight big white keys, C to C, each wearing its letter on a Boomwhacker-
@@ -254,8 +263,9 @@ spoken words) and a note encouraging co-play. Settings persist in
 
 - **Zero dependencies, no build step.** Plain HTML/CSS/JS with classic
   scripts. Serve the folder (or open over any static host) and it runs.
-- **All art is inline SVG / CSS** and all sound effects are
-  WebAudio-synthesized. The only binary assets are the ~51 spoken-word
+- **Art is inline SVG / CSS** (plus the garden's approved sprite set and
+  the galaxy photography) and all sound effects are
+  WebAudio-synthesized. The only binary assets are the ~42 spoken-word
   clips in `www/audio/words/` (≈0.3 MB total), generated offline with
   Piper neural TTS (`en-us-lessac-medium`, slowed ~15%, silence-trimmed,
   loudness-normalized to −20 LUFS). Regenerate or re-record them freely —

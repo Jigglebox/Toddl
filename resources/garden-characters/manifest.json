@@ -1,0 +1,197 @@
+{
+ "style": "flat 2D pastel kawaii, cream-matted RGBA",
+ "source_dir": "assets/_generated_test/veg-patch-v10-best",
+ "assets": {
+  "watering-can": {
+   "file": "watering-can.png",
+   "w": 703,
+   "h": 618,
+   "content_bbox_in_source": [
+    127,
+    196,
+    829,
+    861
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": [
+    "baked-in ground shadow removed (pixel, rows >= 604)"
+   ]
+  },
+  "strawberry": {
+   "file": "strawberry.png",
+   "w": 541,
+   "h": 650,
+   "content_bbox_in_source": [
+    239,
+    178,
+    779,
+    827
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "pea": {
+   "file": "pea.png",
+   "w": 332,
+   "h": 855,
+   "content_bbox_in_source": [
+    347,
+    72,
+    678,
+    926
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "lettuce": {
+   "file": "lettuce.png",
+   "w": 754,
+   "h": 615,
+   "content_bbox_in_source": [
+    134,
+    222,
+    887,
+    836
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "carrot": {
+   "file": "carrot.png",
+   "w": 414,
+   "h": 813,
+   "content_bbox_in_source": [
+    292,
+    99,
+    705,
+    911
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "tomato": {
+   "file": "tomato.png",
+   "w": 533,
+   "h": 592,
+   "content_bbox_in_source": [
+    247,
+    213,
+    779,
+    804
+   ],
+   "seed": 5003,
+   "workflow": "txt2img_part",
+   "prompt_id": "121d2999-0392-4b47-8c05-10feb37f3198",
+   "postprocess": [
+    "nose blob repainted (pixel)",
+    "pass2: stem leaf removed (pixel)"
+   ]
+  },
+  "blueberry": {
+   "file": "blueberry.png",
+   "w": 574,
+   "h": 638,
+   "content_bbox_in_source": [
+    225,
+    201,
+    798,
+    838
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "pumpkin": {
+   "file": "pumpkin.png",
+   "w": 542,
+   "h": 632,
+   "content_bbox_in_source": [
+    236,
+    174,
+    777,
+    805
+   ],
+   "seed": 6001,
+   "workflow": "txt2img_part",
+   "prompt_id": "69f1e634-3f9e-44b3-838a-885599efd54f",
+   "postprocess": [
+    "cleanmatte.py",
+    "pass2: contrast 0.9, sat 0.85"
+   ]
+  },
+  "apple": {
+   "file": "apple.png",
+   "w": 590,
+   "h": 692,
+   "content_bbox_in_source": [
+    218,
+    148,
+    807,
+    839
+   ],
+   "seed": 4013,
+   "workflow": "txt2img_part",
+   "prompt_id": "9a8a34a1-3ac4-4046-97bc-9fc22be48d8a",
+   "postprocess": [
+    "pass2: contrast 0.85"
+   ]
+  },
+  "broccoli": {
+   "file": "broccoli.png",
+   "w": 716,
+   "h": 720,
+   "content_bbox_in_source": [
+    160,
+    113,
+    875,
+    832
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "cabbage": {
+   "file": "cabbage.png",
+   "w": 836,
+   "h": 703,
+   "content_bbox_in_source": [
+    94,
+    199,
+    929,
+    901
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  },
+  "orange": {
+   "file": "orange.png",
+   "w": 558,
+   "h": 643,
+   "content_bbox_in_source": [
+    232,
+    204,
+    789,
+    846
+   ],
+   "seed": null,
+   "workflow": null,
+   "prompt_id": null,
+   "postprocess": []
+  }
+ },
+ "notes": "PNG only for now; sharp is not a project dependency (resources/make-galaxy.js requires it ad hoc), so WebP conversion is left for the integration step. Trim pad 16 px. Sources and review log under assets/_generated_test/veg-patch-v10-best/."
+}

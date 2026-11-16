@@ -460,9 +460,8 @@
     'five',
     // the seasonal garden's crops and seasons
     'spring', 'summer', 'autumn', 'winter',
-    'pea', 'radish', 'lettuce', 'carrot', 'tomato', 'corn', 'watermelon',
-    'blueberry', 'cucumber', 'pumpkin', 'grapes', 'beet', 'broccoli',
-    'cabbage', 'orange', 'turnip', 'leek', 'kale'
+    'pea', 'lettuce', 'carrot', 'tomato', 'blueberry', 'pumpkin',
+    'broccoli', 'cabbage', 'orange'
   ];
 
   var clipCache = {};

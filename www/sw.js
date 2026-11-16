@@ -1,15 +1,16 @@
 /* Toddl service worker — cache-first so the app works fully
    offline after the first visit (planes, waiting rooms…). */
 
-var CACHE = 'toddl-v21';
+var CACHE = 'toddl-v22';
 var WORDS = ['dog', 'cat', 'bird', 'fish', 'turtle', 'apple', 'banana',
   'strawberry', 'flower', 'tree', 'star', 'moon', 'car', 'boat',
   'teddy-bear', 'ball', 'circle', 'square', 'triangle', 'heart',
   'red', 'blue', 'yellow', 'green', 'one', 'two', 'three', 'four', 'five',
   'spring', 'summer', 'autumn', 'winter',
-  'pea', 'radish', 'lettuce', 'carrot', 'tomato', 'corn', 'watermelon',
-  'blueberry', 'cucumber', 'pumpkin', 'grapes', 'beet', 'broccoli',
-  'cabbage', 'orange', 'turnip', 'leek', 'kale'];
+  'pea', 'lettuce', 'carrot', 'tomato', 'blueberry', 'pumpkin',
+  'broccoli', 'cabbage', 'orange'];
+var GARDEN = ['watering-can', 'strawberry', 'pea', 'lettuce', 'carrot', 'tomato',
+  'blueberry', 'pumpkin', 'apple', 'broccoli', 'cabbage', 'orange'];
 var ASSETS = [
   '.',
   'index.html',
@@ -28,7 +29,8 @@ var ASSETS = [
   'manifest.webmanifest'
 ].concat(WORDS.map(function (w) { return 'audio/words/' + w + '.mp3'; }))
  .concat(['scene.webp', 'sceneglow.webp', 'orion.webp']
-   .map(function (g) { return 'img/galaxy/' + g; }));
+   .map(function (g) { return 'img/galaxy/' + g; }))
+ .concat(GARDEN.map(function (g) { return 'img/garden/' + g + '.webp'; }));
 
 self.addEventListener('install', function (e) {
   e.waitUntil(

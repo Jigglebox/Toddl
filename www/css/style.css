@@ -1218,26 +1218,34 @@ button {
   transition: transform 0.18s linear;
 }
 
-.g-plant svg {
+/* The character sprites (approved set): bottom-anchored, never dragged */
+.g-sprite {
+  display: block;
   width: 100%;
   height: 100%;
-  display: block;
-  transform-origin: 50% 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.g-plant.is-boing svg { animation: plant-boing 0.6s var(--ease-spring); }
+.g-plant .g-sprite { transform-origin: 50% 100%; }
+
+.g-plant.is-boing .g-sprite { animation: plant-boing 0.6s var(--ease-spring); }
 
 /* Happy to be watered: a quick glad wiggle while the water lands */
-.g-plant.is-happy svg { animation: plant-happy 0.32s ease-in-out infinite alternate; }
+.g-plant.is-happy .g-sprite { animation: plant-happy 0.32s ease-in-out infinite alternate; }
 
 @keyframes plant-happy {
   from { rotate: -7deg; scale: 1.05 0.95; }
   to   { rotate: 7deg;  scale: 0.96 1.05; }
 }
 
-.g-plant.is-ripe svg { animation: plant-sway 5s ease-in-out infinite alternate; }
+.g-plant.is-ripe .g-sprite { animation: plant-sway 5s ease-in-out infinite alternate; }
 
-.g-plant.is-ripe.is-boing svg {
+.g-plant.is-ripe.is-boing .g-sprite {
   animation: plant-boing 0.6s var(--ease-spring), plant-sway 5s ease-in-out infinite alternate;
 }
 
@@ -1288,7 +1296,7 @@ button {
 
 .g-can-float, .g-can-body { width: 100%; height: 100%; }
 
-.g-can svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.g-can .g-sprite { object-position: center center; }
 
 .g-can.is-idle .g-can-float { animation: can-bob 3.2s ease-in-out infinite alternate; }
 
