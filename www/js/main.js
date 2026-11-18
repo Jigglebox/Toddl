@@ -44,7 +44,7 @@
   var mode = 'single';
   var VISIT_MS = 70000;          // shuffle: no visit outstays its welcome
   var STAY_RESET_MS = 120000;    // single game: a fresh round after this long
-  var ROUND_LINGER_MS = 15000;   // single game: enjoy the finished round first
+  var ROUND_LINGER_MS = 10000;   // single game: enjoy the finished round first
   var restartTimer = null;
 
   var activeGame = null;

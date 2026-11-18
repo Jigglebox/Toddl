@@ -50,7 +50,7 @@ every single thing that happens on screen — not from spectacle.
     from the games the grown-ups left switched on, never the one just
     played — and a 70-second visit timer rotates play anyway if a child
     just pokes around. Picking a **single game** from the home screen
-    stays on that game: a finished round lingers for 15 seconds to be
+    stays on that game: a finished round lingers for 10 seconds to be
     enjoyed, then the stage dips out and comes back with a fresh round,
     and a long visit (two minutes) resets it too. The grown-ups panel's
     per-game toggles govern Shuffle Play, so any game the child isn't
